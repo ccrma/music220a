@@ -1,12 +1,11 @@
-// NOTE: use data file that
-// 1) each number separated by new line character (LF or CR/LF)
-// 2) only contains numbers
-
-"/Users/hongchan/Desktop/data-fortified.dat" => string mydata;
-
 // @class DataReader
+// @author Hongchan Choi (hongchan@ccrma) 
+// @desc An utility class for sonification of time series data. Including
+//   basic normalization process based on Chris Chafe's implementation.
+// @note Use data file that -
+//   1) each number separated by new line character (LF or CR/LF)
+//   2) only contains numbers
 // @revision 2
-// @author Hongchan Choi (hongchan@ccrma)
 class DataReader
 {
     FileIO _file;
@@ -32,7 +31,7 @@ class DataReader
             string line;
             _file => line;
             if( line.length() > 0 ) {
-                 Std.atof(line) => float f;
+                Std.atof(line) => float f;
                 _stream << f;
             }
         }
@@ -79,7 +78,7 @@ class DataReader
             return 1;
         }
     }
-
+    
     // prev(): move one step backward in series
     fun int prev() {
         _curPos--;
@@ -146,23 +145,29 @@ class DataReader
     fun int isValid() {
         return _VALID;
     }
-}
+} // END: class DataReader 
 
-// sample code
+
+
+// -----------------------------------------------------------
+// usage : MODIFY THIS PATH FOR YOUR SETTING
+"[put_your_data_path_and_filename]" => string mydata;
+
+// instantiation
 DataReader dr;
 dr.load(mydata);
 dr.loop(1);
+if (!dr.isValid()) me.exit(); // kill switch
 
-// kill switch
-if (!dr.isValid()) me.exit();
-
+// one sine osc
 SinOsc s => dac;
 0.01 => s.gain;
 (1000/dr.getLength())::ms => dur rate;
 
+// loop with modulation
 while ( dr.next() ) {
     dr.getNormalized() * 20.0 + 80.0 => float pitch;
     Std.mtof(pitch) => s.freq;
+    1.001 *=> rate;
     rate => now;
-    rate * 1.001 => rate;
 }
