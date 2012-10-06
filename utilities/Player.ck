@@ -48,7 +48,7 @@ class Player
 }
 
 // -----------------------------------------------------
-"/Users/hongchan/a/music220a-ccrma/utilities/data-drywhite.dat" => string mydata;
+"[put_your_file_path_here]" => string mydata;
 
 DataReader dr;
 dr.load(mydata);
