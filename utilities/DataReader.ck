@@ -1,4 +1,4 @@
-// @class DataReader
+// @class DataReader, public
 // @author Hongchan Choi (hongchan@ccrma) 
 // @desc An utility class for sonification of time series data. Including
 //   basic normalization process based on Chris Chafe's implementation.
@@ -6,7 +6,7 @@
 //   1) each number separated by new line character (LF or CR/LF)
 //   2) only contains numbers
 // @revision 2
-class DataReader
+public class DataReader
 {
     FileIO _file;
     float _stream[0];
@@ -146,28 +146,3 @@ class DataReader
         return _VALID;
     }
 } // END: class DataReader 
-
-
-
-// -----------------------------------------------------------
-// usage : MODIFY THIS PATH FOR YOUR SETTING
-"[put_your_data_path_and_filename]" => string mydata;
-
-// instantiation
-DataReader dr;
-dr.load(mydata);
-dr.loop(1);
-if (!dr.isValid()) me.exit(); // kill switch
-
-// one sine osc
-SinOsc s => dac;
-0.01 => s.gain;
-(1000/dr.getLength())::ms => dur rate;
-
-// loop with modulation
-while ( dr.next() ) {
-    dr.getNormalized() * 20.0 + 80.0 => float pitch;
-    Std.mtof(pitch) => s.freq;
-    1.001 *=> rate;
-    rate => now;
-}
