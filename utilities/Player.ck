@@ -1,4 +1,16 @@
-// class: envelope generator
+// @title Player.ck
+// @author Hongchan Choi (hongchan@ccrma) 
+// @desc An utility class for sonification of time series data. 
+//   based on Chris Chafe's implementation.
+// @note The example below requires "DataReader" class to be declared
+//   in VM.
+// @version chuck-1.3.1.3
+// @revision 2
+
+
+
+// name:: EnvGen
+// desc:: envelope generator
 class EnvGen
 {
     200.0 => float _rampTime;
@@ -16,9 +28,11 @@ class EnvGen
     fun float getSample() {
         return _e.last();
     }
-}
+} // END: class EnvGen 
 
-// class: sound player
+
+// name:: Player
+// desc:: simple sound player using EnvGen class
 class Player
 {
     SinOsc _s => NRev _rev => dac;
@@ -45,7 +59,8 @@ class Player
             1::samp => now;
         }
     } spork ~ _run(); // run immediately
-}
+} // END: class Player 
+
 
 // -----------------------------------------------------
 "[put_your_file_path_here]" => string mydata;
@@ -53,6 +68,7 @@ class Player
 DataReader dr;
 dr.load(mydata);
 if (!dr.isValid()) me.exit();
+<<< "[Player] Now playing :", mydata >>>;
 
 Player ply;
 200.0 => float rampTime;

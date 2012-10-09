@@ -1,11 +1,16 @@
-// @class DataReader, public
+// @title DataReader.ck
 // @author Hongchan Choi (hongchan@ccrma) 
 // @desc An utility class for sonification of time series data. Including
 //   basic normalization process based on Chris Chafe's implementation.
 // @note Use data file that -
 //   1) each number separated by new line character (LF or CR/LF)
 //   2) only contains numbers
+// @version chuck-1.3.1.3
 // @revision 2
+
+
+// name:: DataReader
+// desc:: general purpose data reader
 public class DataReader
 {
     FileIO _file;
