@@ -15,9 +15,11 @@ if (me.args()) {
 
 // MODIFY THIS: files will be written into current directory
 // "[your_file_path_here]" => string myPath;
+"/Users/hongchan/Desktop/" => string myPath;
 (now / 1000::ms) $ int => Std.itoa => string timetag;
-"L_" + timetag + ".wav" => string filename0; 
-"R_" + timetag + ".wav" => string filename1;
+myPath + "L_" + timetag + ".wav" => string filename0; 
+myPath + "R_" + timetag + ".wav" => string filename1;
+myPath + "Stereo_" + timetag + ".wav" => string final;
 <<< "[StereoRecorder] Recording mono sound files... ", filename0, "|", filename1 >>>;
 
 // pull samples from the dac
@@ -25,8 +27,8 @@ dac.chan(0) => WvOut w0 => blackhole;
 dac.chan(1) => WvOut w1 => blackhole;
 
 // assign file name to Ugens
-myPath + filename0 => w0.wavFilename;
-myPath + filename1 => w1.wavFilename;
+filename0 => w0.wavFilename;
+filename1 => w1.wavFilename;
 
 // advance time
 now + seconds::second => time later;
@@ -39,7 +41,5 @@ w0.closeFile();
 w1.closeFile();
 
 // end messages
-<<<"[StereoRecorder] Done recording! ">>>;
-<<<"OSX: To mix them into stereo, use Audacity and merge them into stereo:" >>>;
-<<<"CCRMA Linux: To mix them into stereo, run the following command in a terminal:" >>>;
-<<<"sox -M earL.wav earR.wav Stereo.wav">>>;
+<<<"[StereoRecorder] Finished! run the following command in a terminal:">>>;
+<<<"sox -M "+ filename0 + " " + filename1 + " " + final>>>;
