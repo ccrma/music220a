@@ -13,9 +13,8 @@ if (me.args()) {
     me.arg(0) => Std.atof => seconds;  
 }
 
-// MODIFY THIS: files will be written into current directory
+// MODIFY THIS: destination path
 // "[your_file_path_here]" => string myPath;
-"/Users/hongchan/Desktop/" => string myPath;
 (now / 1000::ms) $ int => Std.itoa => string timetag;
 myPath + "L_" + timetag + ".wav" => string filename0; 
 myPath + "R_" + timetag + ".wav" => string filename1;
