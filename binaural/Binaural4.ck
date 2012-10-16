@@ -10,7 +10,7 @@
 //   to each ear using the nearfield quad setup in the CCRMA 
 //   ballroom with help from Jonathan Abel.
 // @version chuck-1.3.1.3
-// @revision 1
+// @revision 2
 
 // name:: Binaural4
 // desc:: 4-channel binaural simulator
@@ -18,7 +18,7 @@ public class Binaural4
 {
     // number of synthesized point sources 
     // which will be the number of speakers that produced impulse responses
-    ["a45", "a135", "a225", "a315"] @=> string azims[];
+    ["ch1", "ch2", "ch3", "ch4"] @=> string azims[];
     ["e0"] @=> string elevs[];
     azims.cap() * elevs.cap() => int nChans;
     
@@ -30,10 +30,10 @@ public class Binaural4
     fun void mixEar(int chan, int e) {
         string ear;
         if (!e) "l" => ear; else "r" => ear;
-        azims[chan%azims.cap()] + elevs[chan/azims.cap()] + ear => string name;
+        azims[chan%azims.cap()] + ear => string name;
         
         // impulse response location
-        "[path_to_your_IR_file_location]"+name+".wav" => string Yname;
+        "[your_IR_file_path_here]"+name+".wav" => string Yname;
         SndBuf Ybuf;
         Yname => Ybuf.read;
         Ybuf.gain(50.0);
@@ -109,17 +109,4 @@ public class Binaural4
         spork ~ mixEar(i,0);
         spork ~ mixEar(i,1);
     }
-}
-
-
-// ------------------------------------------------------------------
-// instantiate and tweak gains
-Binaural4 b4;
-for (0 => int i; i < b4.nChans; ++i) {
-    b4.pssp[i].gain(3.0);
-}
-
-// infinite stall
-while(true){ 
-    1::day=>now;
-}
+} // END OF CLASS: Binaural4
