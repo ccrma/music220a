@@ -29,7 +29,7 @@ class DBAP4
         1.0 => _out[i].target;
     }
     
-    // setSource(): obsolete. will be replace with Chubgraph
+    // setSource(): obsolete. will be replaced with Chubgraph
     fun void setSource(UGen source) {
         if (_source != NULL) _source =< _in;
         source @=> _source;
