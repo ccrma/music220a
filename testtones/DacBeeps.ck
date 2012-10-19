@@ -16,9 +16,7 @@ SinOsc sine[nChans];
 
 // iterate on each channel
 for (0 => int i; i < nChans; ++i) {
-    // mute it
     0.0 => sine[i].gain;
-    // connect it to a dac channel
     sine[i] => dac.chan(i);
 }
 
@@ -26,10 +24,10 @@ for (0 => int i; i < nChans; ++i) {
 fun void beepChannel(int id) {
     id - 1 => int channel;
     for (0 => int i; i < id; ++i) {
-        sine[channel].gain(VOLUME); // unmute
-        100::ms => now;  // stall
-        0.0 => sine[channel].gain; // mute
-        100::ms => now;  // stall
+        sine[channel].gain(VOLUME);
+        100::ms => now;
+        0.0 => sine[channel].gain;
+        100::ms => now;
     }
 }
 
@@ -37,6 +35,6 @@ fun void beepChannel(int id) {
 while(true) {
     for (1 => int i; i <= nChans; ++i) {
         beepChannel(i);
-        500::ms => now; // wait for next beep
+        500::ms => now;
     }
 }
