@@ -6,7 +6,7 @@
 // @version chuck-1.3.1.3
 
 
-class DBAP4
+class DBAP4 extends Chubgraph
 {
     // position of speakers: LF, RF, RR, LR
     [[-1.0, 1.0], [1.0, 1.0], [1.0, -1.0], [-1.0, -1.0]]
@@ -16,11 +16,11 @@ class DBAP4
     float _x, _y;
     
     // UGens
-    UGen @ _source;
     Envelope _in;
     Envelope _out[4];
     
     // initialization
+    inlet => _in;
     20::ms => _in.duration;
     1.0 => _in.target;
     for (0 => int i; i < 4; ++i) {
@@ -29,13 +29,6 @@ class DBAP4
         1.0 => _out[i].target;
     }
     
-    // setSource(): obsolete. will be replaced with Chubgraph
-    fun void setSource(UGen source) {
-        if (_source != NULL) _source =< _in;
-        source @=> _source;
-        _source => _in;
-    }
-
     // setPosition(): implements simple DBAP. the radius 
     // of sound is set to 2.0 by default.
     fun void setPosition(float x, float y) {
@@ -57,3 +50,8 @@ class DBAP4
         gain => _in.target;
     }
 }
+
+// example
+SinOsc s => DBAP4 p4;
+p4.setPosition(-1.0, 1.0);
+1::second => now;

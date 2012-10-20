@@ -16,6 +16,7 @@ SinOsc sine[nChans];
 
 // iterate on each channel
 for (0 => int i; i < nChans; ++i) {
+    880 => sine[i].freq;
     0.0 => sine[i].gain;
     sine[i] => dac.chan(i);
 }
@@ -34,7 +35,8 @@ fun void beepChannel(int id) {
 // create an infinite pattern that rotates around the speakers
 while(true) {
     for (1 => int i; i <= nChans; ++i) {
+        <<< "Channel = ", i >>>;
         beepChannel(i);
-        500::ms => now;
+        1000::ms => now;
     }
 }
