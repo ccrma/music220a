@@ -1,7 +1,7 @@
 // @title DacBeeps.ck
 // @author Chris Chafe (cc@ccrma), Hongchan Choi (hongchan@ccrma)
 // @desc test tone generator for multichannel speaker setup
-// @revision 1
+// @revision 2
 // @version chuck-1.3.1.3
 
 
