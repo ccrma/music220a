@@ -50,8 +50,3 @@ class DBAP4 extends Chubgraph
         gain => _in.target;
     }
 }
-
-// example
-SinOsc s => DBAP4 p4;
-p4.setPosition(-1.0, 1.0);
-1::second => now;
