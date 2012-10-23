@@ -8,8 +8,8 @@
 
 class DBAP4 extends Chubgraph
 {
-    // position of speakers: LF, RF, RR, LR
-    [[-1.0, 1.0], [1.0, 1.0], [1.0, -1.0], [-1.0, -1.0]]
+    // position of speakers: LF, RF, LR, RR (Z-config)
+    [[-1.0, 1.0], [1.0, 1.0], [-1.0, -1.0], [1.0, -1.0]]
     @=> float _spks[][];
     
     // position of source
