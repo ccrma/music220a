@@ -1,112 +1,130 @@
 // @title Binaural4.ck
-// @author Chris Chafe (cc@ccrma) 
+// @author Chris Chafe (cc@ccrma), Hongchan Choi (hongchan@ccrma) 
 // @desc Simulates the head being surrounded by 4 speakers and 
 //   delivers tailored signals to each ear, as if coming from 
 //   the speakers.
-// @note Plug headphones into dac.chan(1-2) and start it after
+// @note Plug headphones into dac.chan(0-1) and start it after
 //   it's started, other shreds can send their signals to 
-//   Binaural.pssp[1-4] which are the "psuedo speakers" in quad
+//   pssp[0-3] which are the "psuedo speakers" in quad
 //   formation. Impulse responses were made from each speaker 
 //   to each ear using the nearfield quad setup in the CCRMA 
 //   ballroom with help from Jonathan Abel.
 // @version chuck-1.3.1.3
-// @revision 2
+// @revision 5
+
 
 // name:: Binaural4
-// desc:: 4-channel binaural simulator
+// desc:: 4-channel binaural mixer
 public class Binaural4
 {
-    // number of synthesized point sources 
-    // which will be the number of speakers that produced impulse responses
-    ["ch1", "ch2", "ch3", "ch4"] @=> string azims[];
-    ["e0"] @=> string elevs[];
-    azims.cap() * elevs.cap() => int nChans;
-    
-    // psuedo speakers
-    static Gain @ pssp[nChans];
-    for (0 => int i; i < nChans; ++i) new Gain @=> pssp[i];
-    
-    // function to convolve 1 input with 1 ear
-    fun void mixEar(int chan, int e) {
-        string ear;
-        if (!e) "l" => ear; else "r" => ear;
-        azims[chan%azims.cap()] + ear => string name;
+    // MODIFY THIS: file path for IR files
+    "___YOUR_PATH_HERE___" => string _path;
+    <<< "[BinauralMixer4] IR path:", _path >>>;
+
+    // print startup message
+    <<< "[BinauralMixer4] Starting..." >>>;
         
-        // impulse response location
-        "[your_IR_file_path_here]"+name+".wav" => string Yname;
-        SndBuf Ybuf;
-        Yname => Ybuf.read;
-        Ybuf.gain(50.0);
+    // number of synthesized point sources which will be 
+    // the number of speakers that produced impulse responses
+    // NOTE: we are using Z-formation for quad setup (LF-RF-LR-RR)
+    ["LeftFront", "RightFront", "LeftRear", "RightRear"] @=> string _channels[];
+    _channels.cap() => int _numChannels;
+    
+    // mixer input: inlets exposed aka psuedo speakers
+    Gain input[4];
+    
+    // convolute each source to one ear
+    fun void mixSourceToEar(int channel, string ear) {
+        // loading IR file
+        _path + _channels[channel] + "_" + ear + ".wav" => string filename;
+        SndBuf irbuf;
+        filename => irbuf.read;
+        50.0 => irbuf.gain; // ???
+        
         FFT X;
-        Delay del;
+        Delay dly;
         
         // patch input to fft
-        if ((chan == 0) || (chan == 3)) {
-            pssp[chan] => X => blackhole;
+        if ((channel == 0) || (channel == 3)) {
+            input[channel] => X => blackhole;
         } else { 
             // compensate rear angles a bit with ITD and IID
-            pssp[chan] => del => X => blackhole;
+            input[channel] => dly => X => blackhole;
             0.5::ms => dur ITD;
             2.5 => float IID;
-            if (chan == 1) {
-                if (e == 0) del.delay(0::ms); 
-                else del.delay(ITD);
-                if (e == 0) del.gain(IID); 
-                else del.gain(1.0/IID);
+            if (channel == 1) {
+                if (ear == "L") {
+                    dly.delay(0::ms); 
+                    dly.gain(IID); 
+                } else {
+                    dly.delay(ITD);
+                    dly.gain(1.0 / IID);
+                }
             } else {
-                if (e == 0) del.delay(ITD); 
-                else del.delay(0::ms);
-                if (e == 0) del.gain(1.0/IID); 
-                else del.gain(IID);
+                if (ear == "L") {
+                    dly.delay(ITD);
+                    dly.gain(1.0 / IID);
+                } else {
+                    dly.delay(0::ms);
+                    dly.gain(IID);
+                }                
             }
         }
         
         // patch impulse response to fft
-        Ybuf => FFT Y => blackhole;
+        irbuf => FFT Y => blackhole;
+
         // patch output to dac
-        IFFT ifft => dac.chan(e);
+        0 => int output;
+        if ( ear == "R" ) 1 => output;
+        IFFT ifft => dac.chan(output);
         
-        // set FFT size
+        // set FFT parameters
         1024 => int FFT_SIZE;
-        if (FFT_SIZE < (Ybuf.samples())) <<<"need longer fft ", FFT_SIZE, Ybuf.samples()>>>;
+        if (FFT_SIZE < irbuf.samples()) {
+            <<< "[BinauralMixer4] Need longer FFT size:", FFT_SIZE, irbuf.samples() >>>;
+        }
         FFT_SIZE => X.size => Y.size;
-        // desired hop size
         FFT_SIZE / 4 => int HOP_SIZE;
-        // set window and window size
         Windowing.hann(FFT_SIZE) => X.window;
         Windowing.rectangle(FFT_SIZE) => Y.window;
         Windowing.hann(FFT_SIZE) => ifft.window;
+
         // use this to hold contents
         complex Z[FFT_SIZE/2];
         
         // feed impulse response into fft buffer
-        Ybuf.samples()::samp + now => time ir; // zero pad
-        while(now < ir) FFT_SIZE::samp => now;
-        Ybuf =< Y =< blackhole;
+        irbuf.samples()::samp + now => time ir; // zero pad
+        while(now < ir) {
+            FFT_SIZE::samp => now;
+        }
+        irbuf =< Y =< blackhole;
         // take ir's fft
         Y.upchuck();
         
         while(true) {
             // take incoming signal's fft
-            X.upchuck();
-            
+            X.upchuck();            
             // multiply
-            for(0 => int i; i < X.size()/2; ++i) {
-                //Math.sqrt((Y.cval(i)$polar).mag) * X.cval(i) => Z[i]; // ask about this?
+            for(0 => int i; i < X.size() / 2; ++i) {
                 2 * Y.cval(i) * X.cval(i) => Z[i];
             }
-            
             // take ifft
             ifft.transform( Z );
-            
             // advance time
             HOP_SIZE::samp => now;
         }
     }
     
-    // mixing matrix 24x2
-    for (0 => int i; i < nChans; ++i) {
-        spork ~ mixEar(i,0);
-        spork ~ mixEar(i,1);
+    // sporking mixing matrix
+    for (0 => int i; i < _numChannels; ++i) {
+        spork ~ mixSourceToEar(i, "L");
+        spork ~ mixSourceToEar(i, "R");
+    }
+    
+    // log message and start loop
+    <<< "[BinauralMixer4] Launched successfully." >>>;
+    while(true) {
+        1::minute => now;
     }
 } // END OF CLASS: Binaural4
