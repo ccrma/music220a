@@ -33,6 +33,7 @@ class DBAP4 extends Chubgraph
         // NOTE: for plain 4-ch setup, use this code
         _in => _out[i] => dac.chan(i);
         // NOTE: for binaural mixdown, use the line below
+        // b4 is an instance of Binaural4 class
         // _in => _out[i] => b4.pssp[i];
         20::ms => _out[i].duration;
         0.0 => _out[i].target;
