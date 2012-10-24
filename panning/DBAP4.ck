@@ -35,7 +35,7 @@ class DBAP4 extends Chubgraph
         // NOTE: for binaural mixdown, use the line below
         // _in => _out[i] => b4.pssp[i];
         20::ms => _out[i].duration;
-        1.0 => _out[i].target;
+        0.0 => _out[i].target;
     }
     
     // setPosition(): implements simple DBAP. the radius 
@@ -44,8 +44,8 @@ class DBAP4 extends Chubgraph
         x => _x;
         y => _y;
         for(0 => int i; i < 4; ++i) {
-            _spks[i][0] - _x => float dx;
-            _spks[i][1] - _y => float dy;
+            _spks[i][0] - x => float dx;
+            _spks[i][1] - y => float dy;
             dx * dx => dx;
             dy * dy => dy;
             Math.sqrt(dx + dy) => float dist;
