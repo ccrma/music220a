@@ -9,7 +9,7 @@
 //   formation. Impulse responses were made from each speaker 
 //   to each ear using the nearfield quad setup in the CCRMA 
 //   ballroom with help from Jonathan Abel.
-// @version chuck-1.3.1.3
+// @version chuck-1.3.1.3 / ma-0.2.2c
 // @revision 7
 
 
@@ -27,7 +27,8 @@ public class Binaural4
     // number of synthesized point sources which will be 
     // the number of speakers that produced impulse responses
     // NOTE: we are using Z-formation for quad setup (LF-RF-LR-RR)
-    ["LeftFront", "RightFront", "LeftRear", "RightRear"] @=> string _channels[];
+    ["LeftFront", "RightFront", "LeftRear", "RightRear"] 
+    @=> string _channels[];
     _channels.cap() => int _numChannels;
     
     // mixer input: inlets exposed aka psuedo speakers

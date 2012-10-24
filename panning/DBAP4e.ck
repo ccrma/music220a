@@ -4,18 +4,19 @@
 //   on DBAP (distance based amplitude panning) method. 
 //   Some experimental effects are added to enhance spatial cues.
 // @note This class requires Binaural4.ck as a public class
-// @revision 4
+//   https://github.com/hoch/music220a-ccrma/raw/master/binaural/Binaural4.ck
 // @version chuck-1.3.1.3 / ma-0.2.2c
+// @revision 4
 
 
 class DBAP4e extends Chubgraph
 {
-    // switch
+    // loading public class
     0 => int _BINAURAL;
     
     // warning
     if (dac.channels() < 4) {
-        cherr <= "[DBAP4] Insufficient output ports. Add Binaural4 class to VM.\n";
+        cherr <= "[DBAP4] Insufficient output ports - using binaural mixdown.\n";
         1 => _BINAURAL;
     }
     
