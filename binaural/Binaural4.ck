@@ -19,7 +19,7 @@ public class Binaural4
 {
     // NOTE: download a zipped IR file and extract into the same
     // directory with this code. (only if you're not using git)
-    // 
+    // https://github.com/hoch/music220a-ccrma/raw/master/binaural/ir.zip
     me.sourceDir() + "/ir/ccrma-ballroom/" => string _path;
 
     // print startup message
