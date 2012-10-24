@@ -10,19 +10,19 @@
 //   to each ear using the nearfield quad setup in the CCRMA 
 //   ballroom with help from Jonathan Abel.
 // @version chuck-1.3.1.3
-// @revision 5
+// @revision 7
 
 
 // name:: Binaural4
 // desc:: 4-channel binaural mixer
 public class Binaural4
 {
-    // MODIFY THIS: file path for IR files
-    "___YOUR_PATH_HERE___" => string _path;
-    <<< "[BinauralMixer4] IR path:", _path >>>;
+    // NOTE: your "ir" folder needs to be in the same directory of
+    // this source code
+    me.sourceDir() + "/ir/ccrma-ballroom/" => string _path;
 
     // print startup message
-    <<< "[BinauralMixer4] Starting..." >>>;
+    cherr <= "[Binaural4] Starting...\n";
         
     // number of synthesized point sources which will be 
     // the number of speakers that produced impulse responses
@@ -39,6 +39,7 @@ public class Binaural4
         _path + _channels[channel] + "_" + ear + ".wav" => string filename;
         SndBuf irbuf;
         filename => irbuf.read;
+        cherr <= filename <= IO.newline();
         50.0 => irbuf.gain; // ???
         
         FFT X;
@@ -82,7 +83,8 @@ public class Binaural4
         // set FFT parameters
         1024 => int FFT_SIZE;
         if (FFT_SIZE < irbuf.samples()) {
-            <<< "[BinauralMixer4] Need longer FFT size:", FFT_SIZE, irbuf.samples() >>>;
+            cherr <= "[Binaural4] Need longer FFT size:";
+            cherr <= FFT_SIZE <= irbuf.samples() <= IO.newline();
         }
         FFT_SIZE => X.size => Y.size;
         FFT_SIZE / 4 => int HOP_SIZE;
@@ -123,7 +125,7 @@ public class Binaural4
     }
     
     // log message and start loop
-    <<< "[BinauralMixer4] Launched successfully." >>>;
+    cherr <= "[Binaural4] Launched successfully.\n";
     while(true) {
         1::minute => now;
     }

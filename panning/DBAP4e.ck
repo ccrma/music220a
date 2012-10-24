@@ -5,7 +5,7 @@
 //   Some experimental effects are added to enhance spatial cues.
 // @note This class requires Binaural4.ck as a public class
 // @revision 4
-// @version chuck-1.3.1.3
+// @version chuck-1.3.1.3 / ma-0.2.2c
 
 
 class DBAP4e extends Chubgraph
@@ -87,11 +87,30 @@ class DBAP4e extends Chubgraph
     // ex) d4e.setDelayTime([0.5, 10, 5, 17]);
     fun void setDelayTime(float dt[]) {
         if (dt.cap() < 4) {
-            <<< "[DBAP4e] Invalid array." >>>;
+            cherr <= "[DBAP4e] Invalid array.\n";
             return;
         } else {
             for(0 => int i; i < 4; ++i) {    
                 dt[i]::ms => _d[i].delay;
+            }
+        }
+    }
+    
+    // setMode(): set mode for plain 4 channels or binaural
+    fun void setMode(string mode) {
+        if (_BINAURAL == 1) {
+            cherr <= "[DBAP4e] Can't use plain mode. Insufficient ports.\n";
+            return;
+        }
+        if (mode == "plain") {
+            for (0 => int i; i < 4; ++i) {
+                _r[i] =< _b4.input[i];
+                _r[i] => dac.chan(i);
+            }
+        } else if (mode == "binaural") {
+            for (0 => int i; i < 4; ++i) {
+                _r[i] => _b4.input[i];
+                _r[i] =< dac.chan(i);
             }
         }
     }

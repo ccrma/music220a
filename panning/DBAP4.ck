@@ -3,7 +3,7 @@
 // @desc General purpose panner for 4-channel configuration. Based
 //   on DBAP (distance based amplitude panning) method.
 // @revision 5
-// @version chuck-1.3.1.3
+// @version chuck-1.3.1.3 / ma-0.2.2c
 
 
 class DBAP4 extends Chubgraph
