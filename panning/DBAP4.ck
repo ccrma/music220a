@@ -2,7 +2,7 @@
 // @author Hongchan Choi (hongchan@ccrma)
 // @desc General purpose panner for 4-channel configuration. Based
 //   on DBAP (distance based amplitude panning) method.
-// @revision 2
+// @revision 4
 // @version chuck-1.3.1.3
 
 
@@ -30,6 +30,7 @@ class DBAP4 extends Chubgraph
     20::ms => _in.duration;
     1.0 => _in.target;
     for (0 => int i; i < 4; ++i) {
+        // NOTE: for plain 4-ch setup, use this code
         _in => _out[i] => dac.chan(i);
         // NOTE: for binaural mixdown, use the line below
         // _in => _out[i] => b4.pssp[i];
