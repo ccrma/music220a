@@ -8,6 +8,12 @@
 
 class DBAP4 extends Chubgraph
 {
+    // sanity check
+    if (dac.channels() < 4) {
+        <<< "[DBAP4] Insufficient output ports." >>>;
+        me.exit();
+    }
+    
     // position of speakers: LF, RF, LR, RR (Z-config)
     [[-1.0, 1.0], [1.0, 1.0], [-1.0, -1.0], [1.0, -1.0]]
     @=> float _spks[][];
@@ -29,7 +35,6 @@ class DBAP4 extends Chubgraph
         // _in => _out[i] => b4.pssp[i];
         20::ms => _out[i].duration;
         1.0 => _out[i].target;
-        0.1 => r[i].mix;
     }
     
     // setPosition(): implements simple DBAP. the radius 
