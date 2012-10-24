@@ -3,7 +3,7 @@
 // @desc General purpose panner for 4-channel configuration. Based
 //   on DBAP (distance based amplitude panning) method. 
 //   Some experimental effects are added to enhance spatial cues.
-// @revision 1
+// @revision 2
 // @version chuck-1.3.1.3
 
 
@@ -57,7 +57,7 @@ class DBAP4e extends Chubgraph
         }
     }
     
-    // setGain(): set overall gain
+    // setGain(): set source gain
     fun void setGain(float gain) {
         gain => _in.target;
     }
@@ -66,6 +66,20 @@ class DBAP4e extends Chubgraph
     fun void setReverb(float mix) {
         for (0 => int i; i < 4; ++i) {
             mix => _r[i].mix;
+        }
+    }
+    
+    // setDelayTime(): set delay time for each delay
+    // NOTE: an array of 4 floats between 0.5 ~ 20(ms)
+    // ex) d4e.setDelayTime([0.5, 10, 5, 17]);
+    fun void setDelayTime(float dt[]) {
+        if (dt.cap < 4) {
+            <<< "[DBAP4e] Invalid array." >>>;
+            return;
+        } else {
+            for(0 => int i; i < 4; ++i) {    
+                dt[i]::ms => _d[i].delay;
+            }
         }
     }
 }
