@@ -17,8 +17,9 @@
 // desc:: 4-channel binaural mixer
 public class Binaural4
 {
-    // NOTE: your "ir" folder needs to be in the same directory of
-    // this source code
+    // NOTE: download a zipped IR file and extract into the same
+    // directory with this code. (only if you're not using git)
+    // 
     me.sourceDir() + "/ir/ccrma-ballroom/" => string _path;
 
     // print startup message
