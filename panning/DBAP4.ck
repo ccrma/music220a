@@ -57,7 +57,7 @@ class DBAP4 extends Chubgraph
     // setReverb(): set overall reverb mix parameter
     fun void setReverb(float mix) {
         for (0 => int i; i < 4; ++i) {
-            mix => r[i].mix;
+            mix => _r[i].mix;
         }
     }
 }
