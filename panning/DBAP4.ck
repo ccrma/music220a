@@ -2,7 +2,7 @@
 // @author Hongchan Choi (hongchan@ccrma)
 // @desc General purpose panner for 4-channel configuration. Based
 //   on DBAP (distance based amplitude panning) method.
-// @revision 4
+// @revision 5
 // @version chuck-1.3.1.3
 
 
@@ -10,7 +10,7 @@ class DBAP4 extends Chubgraph
 {
     // sanity check
     if (dac.channels() < 4) {
-        <<< "[DBAP4] Insufficient output ports." >>>;
+        cherr <= "[DBAP4] Insufficient output ports.\n";
         me.exit();
     }
     
