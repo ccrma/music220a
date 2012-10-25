@@ -59,4 +59,4 @@ class DBAP4 extends Chubgraph
     fun void setGain(float gain) {
         gain => _in.target;
     }
-}
+} // END OF CLASS: DBAP4

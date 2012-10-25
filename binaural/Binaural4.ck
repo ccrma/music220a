@@ -23,7 +23,7 @@ public class Binaural4
     me.sourceDir() + "/ir/ccrma-ballroom/" => string _path;
 
     // print startup message
-    cherr <= "[Binaural4] Starting...\n";
+    cherr <= "[Binaural4] Creating instance...\n";
         
     // number of synthesized point sources which will be 
     // the number of speakers that produced impulse responses
@@ -41,7 +41,7 @@ public class Binaural4
         _path + _channels[channel] + "_" + ear + ".wav" => string filename;
         SndBuf irbuf;
         filename => irbuf.read;
-        cherr <= filename <= IO.newline();
+        // cherr <= filename <= IO.newline();
         50.0 => irbuf.gain; // ???
         
         FFT X;
@@ -127,8 +127,7 @@ public class Binaural4
     }
     
     // log message and start loop
-    cherr <= "[Binaural4] Launched successfully.\n";
-    while(true) {
-        1::minute => now;
-    }
+    cherr <= "[Binaural4] Mixer launched successfully.\n";
 } // END OF CLASS: Binaural4
+
+cherr <= "[Binaural4] Class definition loaded.\n";

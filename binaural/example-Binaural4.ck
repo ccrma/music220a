@@ -1,7 +1,7 @@
 // @title example-Binaural4.ck
 // @author Hongchan Choi (hongchan@ccrma) 
 // @desc A simple examplary usage of Binaural4 class
-// @version chuck-1.3.1.3
+// @version chuck-1.3.1.3 / ma-0.2.2c
 // @revision 1
 
 

@@ -18,6 +18,8 @@ class DBAP4e extends Chubgraph
     if (dac.channels() < 4) {
         cherr <= "[DBAP4] Insufficient output ports - using binaural mixdown.\n";
         1 => _BINAURAL;
+    } else {
+        cherr <= "[DBAP4] Using 4-channel configuration.\n";
     }
     
     // position of speakers: LF, RF, LR, RR (Z-config)
@@ -115,4 +117,4 @@ class DBAP4e extends Chubgraph
             }
         }
     }
-}
+} // END OF CLASS: DBAP4e
