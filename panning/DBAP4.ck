@@ -6,7 +6,7 @@
 // @revision 5
 
 
-class DBAP4 extends Chubgraph
+public class DBAP4 extends Chubgraph
 {
     // sanity check
     if (dac.channels() < 4) {

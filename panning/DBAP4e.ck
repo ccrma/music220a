@@ -9,7 +9,7 @@
 // @revision 4
 
 
-class DBAP4e extends Chubgraph
+public class DBAP4e extends Chubgraph
 {
     // loading public class
     0 => int _BINAURAL;
