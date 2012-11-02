@@ -18,7 +18,7 @@ FileIO f;
 me.sourceDir() + "/ir/ccrma-ballroom/" => string p;
 f.open(p + "LeftFront_L.wav", FileIO.READ);
 if (!f.good()) { 
-    cherr <= "[Binaural4] Check your IR file path. Can't load Binaural4.\n";
+    cherr <= "[Binaural4] Check your IR file path. Binaural4 will not work.\n";
     me.exit();
 }
 
