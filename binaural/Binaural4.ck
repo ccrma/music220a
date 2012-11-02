@@ -41,14 +41,6 @@ public class Binaural4
     @=> string _channels[];
     _channels.cap() => int _numChannels;
     
-    // sanity check
-    FileIO _f;
-    _f.open(_path + _channels[0] + "_L.wav", FileIO.READ);
-    if (!_f.good()) { 
-        cherr <= "[Binaural4] Check your IR file path. Can't open files.\n";
-        me.exit();
-    }
-    
     // mixer input: inlets exposed aka psuedo speakers
     Gain input[4];
     
