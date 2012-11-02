@@ -5,16 +5,25 @@
 //   the speakers.
 // @note Plug headphones into dac.chan(0-1) and start it after
 //   it's started, other shreds can send their signals to 
-//   pssp[0-3] which are the "psuedo speakers" in quad
+//   input[0-3] which are the "psuedo speakers" in quad
 //   formation. Impulse responses were made from each speaker 
 //   to each ear using the nearfield quad setup in the CCRMA 
 //   ballroom with help from Jonathan Abel.
 // @version chuck-1.3.1.3 / ma-0.2.2c
-// @revision 7
+// @revision 8
 
 
-// name:: Binaural4
-// desc:: 4-channel binaural mixer
+// sanity check
+FileIO f;
+me.sourceDir() + "/ir/ccrma-ballroom/" => string p;
+f.open(p + "LeftFront_L.wav", FileIO.READ);
+if (!f.good()) { 
+    cherr <= "[Binaural4] Check your IR file path. Can't load Binaural4.\n";
+    me.exit();
+}
+
+
+// @class Binaural4 4-channel binaural mixer
 public class Binaural4
 {
     // NOTE: download a zipped IR file and extract into the same
@@ -31,6 +40,14 @@ public class Binaural4
     ["LeftFront", "RightFront", "LeftRear", "RightRear"] 
     @=> string _channels[];
     _channels.cap() => int _numChannels;
+    
+    // sanity check
+    FileIO _f;
+    _f.open(_path + _channels[0] + "_L.wav", FileIO.READ);
+    if (!_f.good()) { 
+        cherr <= "[Binaural4] Check your IR file path. Can't open files.\n";
+        me.exit();
+    }
     
     // mixer input: inlets exposed aka psuedo speakers
     Gain input[4];
