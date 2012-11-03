@@ -16,10 +16,10 @@ public class DBAP4e extends Chubgraph
     
     // warning
     if (dac.channels() < 4) {
-        cherr <= "[DBAP4e] Insufficient output ports - using binaural mixdown.\n";
+        cherr <= "[DBAP4e] insufficient output ports - using binaural mixdown.\n";
         1 => _BINAURAL;
     } else {
-        cherr <= "[DBAP4e] Using 4-channel configuration.\n";
+        cherr <= "[DBAP4e] using 4-channel configuration.\n";
     }
     
     // position of speakers: LF, RF, LR, RR (Z-config)
@@ -34,7 +34,6 @@ public class DBAP4e extends Chubgraph
     Envelope _out[4];
     DelayA _d[4];
     NRev _r[4];
-    Binaural4 _b4;
     
     // initialization
     inlet => _in;
@@ -44,7 +43,7 @@ public class DBAP4e extends Chubgraph
         if (_BINAURAL == 0) {
             _in => _out[i] => _d[i] => _r[i] => dac.chan(i);
         } else {
-            _in => _out[i] => _d[i] => _r[i] => _b4.input[i];
+            _in => _out[i] => _d[i] => _r[i] => Binaural4.input[i];
         }
         20::ms => _out[i].duration;
         0.0 => _out[i].target;
@@ -90,7 +89,7 @@ public class DBAP4e extends Chubgraph
     // ex) d4e.setDelayTime([0.5, 10, 5, 17]);
     fun void setDelayTime(float dt[]) {
         if (dt.cap() < 4) {
-            cherr <= "[DBAP4e] Invalid array.\n";
+            cherr <= "[DBAP4e] invalid array.\n";
             return;
         } else {
             for(0 => int i; i < 4; ++i) {    
@@ -107,12 +106,12 @@ public class DBAP4e extends Chubgraph
         }
         if (mode == "plain") {
             for (0 => int i; i < 4; ++i) {
-                _r[i] =< _b4.input[i];
+                _r[i] =< Binaural4.input[i];
                 _r[i] => dac.chan(i);
             }
         } else if (mode == "binaural") {
             for (0 => int i; i < 4; ++i) {
-                _r[i] => _b4.input[i];
+                _r[i] => Binaural4.input[i];
                 _r[i] =< dac.chan(i);
             }
         }

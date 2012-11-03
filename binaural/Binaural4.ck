@@ -32,7 +32,7 @@ public class Binaural4
     me.sourceDir() + "/ir/ccrma-ballroom/" => string _path;
 
     // print startup message
-    cherr <= "[Binaural4] Creating instance...\n";
+    cherr <= "[Binaural4] creating instance...\n";
         
     // number of synthesized point sources which will be 
     // the number of speakers that produced impulse responses
@@ -42,7 +42,11 @@ public class Binaural4
     _channels.cap() => int _numChannels;
     
     // mixer input: inlets exposed aka psuedo speakers
-    Gain input[4];
+    static Gain @ input[4];
+    for(0 => int i; i < 4; ++i ) {
+        new Gain @=> input[i];
+        3.0 => input[i].gain;
+    }
     
     // convolute each source to one ear
     fun void mixSourceToEar(int channel, string ear) {
@@ -94,7 +98,7 @@ public class Binaural4
         // set FFT parameters
         1024 => int FFT_SIZE;
         if (FFT_SIZE < irbuf.samples()) {
-            cherr <= "[Binaural4] Need longer FFT size:";
+            cherr <= "[Binaural4] need longer FFT size:";
             cherr <= FFT_SIZE <= irbuf.samples() <= IO.newline();
         }
         FFT_SIZE => X.size => Y.size;
@@ -136,7 +140,12 @@ public class Binaural4
     }
     
     // log message and start loop
-    cherr <= "[Binaural4] Mixer launched successfully.\n";
+    cherr <= "[Binaural4] mixer launched successfully.\n";
 } // END OF CLASS: Binaural4
 
-cherr <= "[Binaural4] Class definition loaded.\n";
+// instantiate and loop
+Binaural4 b;
+cherr <= "[Binaural4] binaural mixer started.\n";
+while(true) {
+    1::day => now;
+}
