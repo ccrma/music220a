@@ -10,7 +10,7 @@
 //   to each ear using the nearfield quad setup in the CCRMA 
 //   ballroom with help from Jonathan Abel.
 // @version chuck-1.3.1.3 / ma-0.2.2c
-// @revision 8
+// @revision 9
 
 
 // sanity check
