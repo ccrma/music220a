@@ -9,8 +9,8 @@
 //   formation. Impulse responses were made from each speaker 
 //   to each ear using the nearfield quad setup in the CCRMA 
 //   ballroom with help from Jonathan Abel.
-// @version chuck-1.3.1.3 / ma-0.2.2c
-// @revision 9
+// @version chuck-1.3.2.0
+// @revision 10 [by CC]
 
 
 // sanity check
@@ -21,7 +21,6 @@ if (!f.good()) {
     cherr <= "[Binaural4] Check your IR file path. Binaural4 will not work.\n";
     me.exit();
 }
-
 
 // @class Binaural4 4-channel binaural mixer
 public class Binaural4
@@ -41,52 +40,49 @@ public class Binaural4
     @=> string _channels[];
     _channels.cap() => int _numChannels;
     
-    // mixer input: inlets exposed aka psuedo speakers
+    // mixer input: inlets exposed for psuedo speakers
     static Gain @ input[4];
     for(0 => int i; i < 4; ++i ) {
         new Gain @=> input[i];
-        3.0 => input[i].gain;
+        1.0 => input[i].gain;
     }
     
-    // convolute each source to one ear
+    // convolve each source to one ear
     fun void mixSourceToEar(int channel, string ear) {
         // loading IR file
         _path + _channels[channel] + "_" + ear + ".wav" => string filename;
         SndBuf irbuf;
         filename => irbuf.read;
         // cherr <= filename <= IO.newline();
-        50.0 => irbuf.gain; // ???
+        50.0 => irbuf.gain; 
         
         FFT X;
         Delay dly;
         
         // patch input to fft
-        if ((channel == 0) || (channel == 3)) {
-            input[channel] => X => blackhole;
-        } else { 
-            // compensate rear angles a bit with ITD and IID
-            input[channel] => dly => X => blackhole;
-            0.5::ms => dur ITD;
-            2.5 => float IID;
-            if (channel == 1) {
-                if (ear == "L") {
-                    dly.delay(0::ms); 
-                    dly.gain(IID); 
-                } else {
-                    dly.delay(ITD);
-                    dly.gain(1.0 / IID);
-                }
-            } else {
-                if (ear == "L") {
-                    dly.delay(ITD);
-                    dly.gain(1.0 / IID);
-                } else {
-                    dly.delay(0::ms);
-                    dly.gain(IID);
-                }                
-            }
-        }
-        
+        // compensate angles a bit with ITD and IID
+        input[channel] => dly => X => blackhole;
+        0.05::ms => dur ITD;
+        2.0 => float IID; // a bit more gain front
+        if (channel > 1) 1.5 => IID;
+        if (!(channel%2)) { // a left side channel
+          if (ear == "L") {
+            dly.delay(0::ms); 
+            dly.gain(IID); 
+          } else {
+            dly.delay(ITD);
+            dly.gain(1.0 / IID);
+          }
+	} else { // a right side one
+          if (ear == "L") {
+            dly.delay(ITD);
+            dly.gain(1.0 / IID);
+          } else {
+            dly.delay(0::ms);
+            dly.gain(IID);
+          }                
+        }            
+           
         // patch impulse response to fft
         irbuf => FFT Y => blackhole;
 
@@ -98,7 +94,7 @@ public class Binaural4
         // set FFT parameters
         1024 => int FFT_SIZE;
         if (FFT_SIZE < irbuf.samples()) {
-            cherr <= "[Binaural4] need longer FFT size:";
+            cherr <= "[Binaural4] needs longer FFT size:";
             cherr <= FFT_SIZE <= irbuf.samples() <= IO.newline();
         }
         FFT_SIZE => X.size => Y.size;
@@ -133,7 +129,7 @@ public class Binaural4
         }
     }
     
-    // sporking mixing matrix
+    // spork the mixing matrix
     for (0 => int i; i < _numChannels; ++i) {
         spork ~ mixSourceToEar(i, "L");
         spork ~ mixSourceToEar(i, "R");
