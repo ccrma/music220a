@@ -3,42 +3,38 @@
 // @author Chris Chafe (cc@ccrma), Hongchan Choi(hongchan@ccrma)
 // @desc Record the stereo output from dac.chan(0, 1)
 // @note Add this code into VM to capture the audio output of dac.
-// @version chuck-1.3.1.3
-// @revision 1
+// @version chuck-1.3.2.0
+// @revision 2
 
-
-// default duration of audio file you'll create: 
+// use the command line or miniAudicle to specify recording length
+// for example, one minute of recording: StereoRecorder.ck:60
+// otherwise, this is the default duration of audio file you'll create: 
 10.0 => float seconds;
 if (me.args()) {
     me.arg(0) => Std.atof => seconds;  
 }
 
-// MODIFY THIS: destination path
+// MODIFY THIS: destination path, must be specified in order to run
+// for example: 
+"/tmp/tmp" => string myPath;
 // "[your_file_path_here]" => string myPath;
-(now / 1000::ms) $ int => Std.itoa => string timetag;
-myPath + "L_" + timetag + ".wav" => string filename0; 
-myPath + "R_" + timetag + ".wav" => string filename1;
-myPath + "Stereo_" + timetag + ".wav" => string final;
-<<< "[StereoRecorder] Recording mono sound files... ", filename0, "|", filename1 >>>;
+myPath + ".wav" => string filename; 
+<<< "[StereoRecorder] Recording stereo sound file... ", filename >>>;
 
 // pull samples from the dac
-dac.chan(0) => WvOut w0 => blackhole;
-dac.chan(1) => WvOut w1 => blackhole;
+dac => WvOut2 w => blackhole;
 
 // assign file name to Ugens
-filename0 => w0.wavFilename;
-filename1 => w1.wavFilename;
+filename => w.wavFilename;
 
 // advance time
 now + seconds::second => time later;
 while( now < later ) {
-    100::ms => now;
+    1::ms => now;
 }
 
 // close files
-w0.closeFile();
-w1.closeFile();
+w.closeFile();
 
 // end messages
-<<<"[StereoRecorder] Finished! run the following command in a terminal:">>>;
-<<<"sox -M "+ filename0 + " " + filename1 + " " + final>>>;
+<<<"[StereoRecorder] Finished!">>>;
