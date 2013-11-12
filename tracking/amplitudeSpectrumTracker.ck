@@ -2,8 +2,8 @@
 // @author Chris Chafe (cc@ccrma), Hongchan Choi (hongchan@ccrma) 
 // @desc A starter code for homework 5, Music220a-2012
 // @note amplitude/spectrum tracking using UAna ugens
-// @version chuck-1.3.1.3 / ma-0.2.2c
-// @revision 1
+// @version chuck-1.3.2.0
+// @revision 2
 
 
 // IMPORTANT NOTE: this patch is designed to use microphone.
@@ -15,19 +15,17 @@
 // pipe input into analysis audio graph:
 // track amplitude for gain of a resonant filtered-noise
 // frequency will track centroid of the input spectrum
-adc => FFT fft  =^ RMS rms => blackhole;
+adc.chan(0) => FFT fft  =^ RMS rms => blackhole;
 fft =^ Centroid cent => blackhole;
 
 // setup FFT: choose high-quality transform parameters
-4096 => fft.size;
-Windowing.hann(fft.size() / 2) => fft.window;
-20 => int overlap;
-0 => int ctr;
+2048 => fft.size;
+0.5 => float hop;
 second / samp => float srate;
 
 // actual audio graph and parameter setting
 // NOTE: gain 'g' prevents direct connection bug
-adc => Gain g => dac.left;
+adc.chan(0) => Gain g => dac.left;
 // resonant low-pass filtered noise
 Noise n => ResonZ r => dac.right;
 // initial gain, quality(Q) and frequency for resonz
@@ -38,8 +36,8 @@ Noise n => ResonZ r => dac.right;
 Smooth sma, smf;
 // set time constant: shorter time constant gives faster 
 // response but more jittery values
-sma.setTimeConstant((fft.size() / 3)::samp);
-smf.setTimeConstant((fft.size() / 8)::samp);
+sma.setTimeConstant((fft.size() * 2)::samp);
+smf.setTimeConstant((fft.size() * 2)::samp);
 
 
 // setGainQAndFreq()
@@ -58,35 +56,29 @@ fun void setGainQAndFreq() {
 // main inf-loop
 while(true) {
     // hop in time by overlap amount
-    (fft.size() / overlap)::samp => now;
+    (fft.size() * hop)::samp => now;
     // then we've gotten our first bufferful
-    if (ctr > overlap) {
-        // compute the FFT and RMS analyses
-        rms.upchuck(); 
-        rms.fval(0) => float a;
-        Math.rmstodb(a) => float db;
-        // boost the sensitity
-        30 + db * 15 => db;
-        // but clip at maximum
-        Math.min(100, db) => db; 
-        sma.setNext(Math.dbtorms(db));      
+    // compute the FFT and RMS analyses
+    rms.upchuck(); 
+    rms.fval(0) => float a;
+    Math.rmstodb(a) => float db;
+    // boost the sensitity
+    30 + db * 15 => db;
+    // but clip at maximum
+    Math.min(100, db) => db; 
+    sma.setNext(Math.dbtorms(db));      
         
-        // compute spectral centroid
-        cent.upchuck(); 
-        cent.fval(0) * srate / 2 => float c;
-        // then convert it to MIDI pitch
-        c => Math.ftom => float p;
-        // minus a major third
-        -4 +=> p;
-        // set lower boundary: prevents note too low
-        Math.max(20, p) => p;
-        // new freq if not noise
-        if(db > 10.0) {
-            smf.setNext(Math.mtof(p));
-        }
-
+    // compute spectral centroid
+    cent.upchuck(); 
+    cent.fval(0) * srate / 2 => float c;
+    // then convert it to MIDI pitch
+    c => Math.ftom => float p;
+    // set lower boundary: prevents note too low
+    Math.max(20, p) => p;
+    // new freq if not noise
+    if(db > 10.0) {
+        smf.setNext(Math.mtof(p));
     }
-    ctr++;
 }
 
 

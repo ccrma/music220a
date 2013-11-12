@@ -2,29 +2,23 @@
 // @author Chris Chafe (cc@ccrma), Hongchan Choi (hongchan@ccrma) 
 // @desc A starter code for homework 5, Music220a-2012
 // @note amplitude tracking using UAna ugens
-// @version chuck-1.3.1.3 / ma-0.2.2c
-// @revision 1
-
+// @version chuck-1.3.2.0
+// @revision 2
 
 // IMPORTANT NOTE: this patch is designed to use microphone.
 // If you're using speakers and your microphone at the same time,
 // you might experience serious feedback. Make sure to use 
 // the headphone or earbuds to avoid it.
 
-
 // pipe input into analysis audio graph:
 // track amplitude to control breath pressure of a clarinet
-adc => FFT fft =^ RMS rms => blackhole;
-
-// choose high-quality transform parameters
-4096 => fft.size;
-Windowing.hann(fft.size()/2) => fft.window;
-20 => int overlap;
-0 => int ctr;
-
+adc.chan(0) => FFT fft =^ RMS rms => blackhole;
+0.5 => float hop;
+ 2048 => fft.size;
 // actual audio graph and parameter setting
-// NOTE: gain 'g' prevents direct connection bug
-adc => Gain g => dac.left;
+// there is an adc disconnect bug when removing shred
+// using Gain g is a workaround
+adc.chan(0) => Gain g => dac.left;
 // STK clarinet instrument
 Clarinet cl => dac.right;
 60 => Std.mtof => cl.freq;
@@ -34,9 +28,7 @@ Smooth sma;
 // response but more jittery values
 sma.setTimeConstant((fft.size() / 2)::samp);
 
-
 // setBlowingPressure()
-spork ~ setBlowingPressure();
 fun void setBlowingPressure() {
     while (true) {
         // apply smoothed value to pressure
@@ -44,27 +36,23 @@ fun void setBlowingPressure() {
         1::samp => now;
     }
 }
-
+spork ~ setBlowingPressure();
 
 // main inf-loop
 while(true) {
     // hop in time by overlap amount
-    (fft.size() / overlap)::samp => now;
-    // then we've gotten our first bufferful
-    if (ctr > overlap) {
-        // compute the RMS analysis
-        rms.upchuck();
-        rms.fval(0) => float a;
-        Math.rmstodb(a) => float db;
-        // boost the sensitity
-        75 +=> db;
-        // but clip at maximum 
-        Math.min(100, db) => db; 
-        sma.setNext(Math.dbtorms(db));      
-    }
-    ctr++;
+    (fft.size() * hop)::samp => now;
+    // we've gotten our first bufferful
+    // compute the RMS analysis
+    rms.upchuck();
+    rms.fval(0) => float a;
+    Math.rmstodb(a) => float db;
+    // boost the sensitity
+    75 +=> db;
+    // but clip at maximum 
+    Math.min(100, db) => db; 
+    sma.setNext(Math.dbtorms(db));      
 }
-
 
 // @class Smooth
 // @desc contral signal generator for smooth transition
