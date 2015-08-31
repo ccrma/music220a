@@ -1,6 +1,8 @@
-# Code Repository for Music 220A at CCRMA
+# Code Repository for Music220A
 
-This repository is a collection of various codes for Music 220A class at CCRMA/Stanford University. As a collective effort from CCRMA community, Chris Chafe and Hongchan Choi are managing the repository for academic purpose.
+> Music 220A: "Fundamentals of Computer-generated Sound"
+
+This repository is a collection of various codes for [Music220A](Music 220A) class at CCRMA/Stanford University.
 
 For more information, please visit the following site:
 * https://ccrma.stanford.edu/courses/220a/
