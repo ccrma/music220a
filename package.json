@@ -1,0 +1,32 @@
+{
+  "name": "music220a",
+  "version": "1.0.0",
+  "description": "The example code repository for Music 220A at CCRMA",
+  "scripts": {
+    "eslint": "./node_modules/.bin/eslint **/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ccrma/music220a.git"
+  },
+  "keywords": [
+    "sound synthesis",
+    "audio processing",
+    "computer music",
+    "ccrma"
+  ],
+  "author": "Music 220A authors (See OWNERS)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ccrma/music220a/issues"
+  },
+  "homepage": "https://ccrma.stanford.edu/courses/220a/",
+  "devDependencies": {
+    "eslint": "^6.6.0",
+    "eslint-config-google": "^0.14.0",
+    "recursive-readdir": "^2.2.2"
+  },
+  "dependencies": {
+    "prepend-file": "^1.3.1"
+  }
+}

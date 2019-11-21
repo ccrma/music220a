@@ -1,0 +1,62 @@
+body {
+  padding: 1rem;
+  margin: 1rem;
+  font-family: sans-serif;
+}
+
+h1 {
+  padding: 0;
+  margin: 0.5rem 0 1rem 0;
+}
+
+p, div {
+  padding: 0;
+  margin: 0;
+}
+
+a {
+  color: #00b0ff;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0 1rem;
+}
+
+li {
+  margin: 0.5rem 0 0 0;
+}
+
+button {
+  font-size: 1rem;
+  border-radius: 0.25rem;
+  padding: 0.5rem 1rem;
+  margin: 0.2rem 0;
+}
+
+button:focus {
+  outline: none;
+}
+
+input[type=range] {
+  margin: 1rem 0;
+}
+
+input[type=range]:focus {
+  outline: none;
+}
+
+canvas {
+  border: 1px solid #cdcdcd;
+}
+
+#ui-log {
+  font-family: monospace;
+  border: 1px solid #cdcdcd;
+  min-height: 1rem;
+}
+
+.small {
+  font-size: 0.75rem;
+}
