@@ -23,7 +23,7 @@ const lfo = new OscillatorNode(context);
 const depth = new GainNode(context);
 
 osc.connect(biquad).connect(amp).connect(context.destination);
-lfo.connect(depth).connect(biquad.frequency);
+lfo.connect(depth).connect(biquad.detune);
 
 osc.frequency.value = 100;
 osc.type = 'sawtooth';
@@ -32,7 +32,7 @@ biquad.frequency.value = 1000;
 lfo.frequency.value = 8;
 lfo.type = 'sine';
 depth.gain.value = 100;
-biquad.Q.value = 10;
+biquad.Q.value = 16;
 
 const startFilterModulation = () => {
   const now = context.currentTime;

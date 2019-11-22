@@ -45,8 +45,7 @@ const setup = async () => {
   bufferMap = await Util.createBufferMap(context, SampleDataCollection);
 };
 
-ER.defineButton(
-    'button-start',
-    () => playBuffer(bufferMap['guitar'], bufferMap['big-church'], 1.0),
-    'once');
+ER.defineButton('button-start', () => {
+  playBuffer(bufferMap['guitar'], bufferMap['big-church'], 1.0);
+}, 'once');
 ER.start(setup);

@@ -21,7 +21,7 @@ master.connect(context.destination);
 const numberOfOscillators = 40;
 const fundamental = 400;
 const volume = 1.0;
-master.gain.value = 1.0 / numberOfOscillators;
+master.gain.value = 1.0;
 
 const playPartial = (n) => {
   const osc = new OscillatorNode(context, {frequency: fundamental * n});

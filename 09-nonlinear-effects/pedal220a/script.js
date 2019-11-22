@@ -20,6 +20,7 @@ const SampleDataCollection = [
   {key: 'plate', url: '../../sound/ir/plate.mp3'},
   {key: 'cabinet', url: '../../sound/ir/amp-cabinet.wav'},
 ];
+let bufferMap = null;
 
 const context = new AudioContext();
 const waveshaper = new WaveShaperNode(context);
@@ -69,7 +70,7 @@ const playBuffer = (buffer) => {
 };
 
 const setup = async () => {
-  const bufferMap = await Util.createBufferMap(context, SampleDataCollection);
+  bufferMap = await Util.createBufferMap(context, SampleDataCollection);
   plate.buffer = bufferMap['plate'];
   cabinet.buffer = bufferMap['cabinet'];
   buildTransferFunction();

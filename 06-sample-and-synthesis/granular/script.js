@@ -35,7 +35,7 @@ const playGrain = (buffer) => {
   amp.gain.linearRampToValueAtTime(
       Util.random2f(0.25, 0.5), now + duration * 0.1);
   amp.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-  source.playbackRate.value = Util.random2f(0.01, 0.2);
+  source.playbackRate.value = Util.random2f(0.2, 0.4);
   source.start(
       now + Util.random2f(0.1, 0.4),
       buffer.duration * Util.random2f(0.3, 0.71),

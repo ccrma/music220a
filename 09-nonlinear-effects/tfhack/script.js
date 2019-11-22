@@ -28,7 +28,7 @@ const buildTransferFunction = () => {
   const inc = 2.0 / data.length;
   for (let i = 0, x = -1; i < data.length; i++, x += inc) {
     // Passthrough
-    data[i] = x;
+    // data[i] = x;
 
     // Harmonics with Chebyshev Polynomial
     // data[i] = 2 * Math.pow(x, 2) - 1;
@@ -37,7 +37,7 @@ const buildTransferFunction = () => {
 
     // Overdrive/saturation
     // data[i] = x + x * Math.sin(Math.PI * x) / 5;
-    // data[i] = Math.tanh(4 * Math.PI * x);
+    data[i] = Math.tanh(4 * Math.PI * x);
 
     // Expansion
     // data[i] = Math.pow(x, 5);

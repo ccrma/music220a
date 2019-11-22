@@ -29,9 +29,9 @@ bufferSource.connect(stereoPanner).connect(amp).connect(context.destination);
 stereoPanner.pan.value = 0.0; // center
 
 // For panning modulation:
-// const lfo = new OscillatorNode(context, {frequency: 1});
-// lfo.connect(stereoPanner.pan);
-// lfo.start();
+const lfo = new OscillatorNode(context, {frequency: 0.25});
+lfo.connect(stereoPanner.pan);
+lfo.start();
 
 const playBuffer = (audioBuffer) => {
   bufferSource.buffer = audioBuffer;

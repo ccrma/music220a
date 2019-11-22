@@ -32,10 +32,10 @@ const playBuffer = (buffer) => {
   // source.loopEnd = buffer.duration * 0.02;
 
   // Playing with |.playbackRate| AudioParam
-  // source.playbackRate.setValueAtTime(1, now);
-  // source.playbackRate.linearRampToValueAtTime(0.1, now + 2.5);
-  // source.playbackRate.linearRampToValueAtTime(2, now + 5);
-  // source.playbackRate.linearRampToValueAtTime(1, now + 7.5);
+  source.playbackRate.setValueAtTime(1, now);
+  source.playbackRate.linearRampToValueAtTime(0.1, now + 2.5);
+  source.playbackRate.linearRampToValueAtTime(2, now + 5);
+  source.playbackRate.linearRampToValueAtTime(1, now + 7.5);
 
   source.start(now);
   source.stop(now + 10);
