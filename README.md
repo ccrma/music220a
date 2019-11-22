@@ -1,18 +1,21 @@
 # Music 220A Code Examples
 
 This is a collection of code examples that are specifically designed for
-Music 220A course at Center for Computer Research in Music and Acoustics
-(CCRMA).
+Music 220A course from [Center for Computer Research in Music and Acoustics
+(CCRMA)](https://ccrma.stanford.edu/) at Stanford University.
 
-These examples are supplemental to the course reader, which is avilable
-on [the course web page](https://ccrma.stanford.edu/courses/220a/). The
-live demo of these examples can also be found
-[here](https://github.com/ccrma/music220a).
+- [Music 220A Course Web Page](https://ccrma.stanford.edu/courses/220a/)
+- [Code Example Live Demo](https://ccrma.github.io/music220a/)
+
+Note that these examples are supplemental to the course reader, which is
+avilable on the course web page.
 
 **Code Example Archive (~2018)**
 
-Starting from 2019, the course material has been rewritten with Web Audio API.
-You can find the previous collection of code examples in `archive` branch.
+Starting from 2019, the course material has been rewritten with
+[Web Audio API](https://webaudio.github.io/web-audio-api/).
+You can find the previous collection of code examples in the
+[archive branch](https://github.com/ccrma/music220a/tree/archive).
 
 ## Support
 
