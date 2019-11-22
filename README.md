@@ -4,8 +4,8 @@ This is a collection of code examples that are specifically designed for
 Music 220A course from [Center for Computer Research in Music and Acoustics
 (CCRMA)](https://ccrma.stanford.edu/) at Stanford University.
 
-- [Music 220A Course Web Page](https://ccrma.stanford.edu/courses/220a/)
-- [Code Example Live Demo](https://ccrma.github.io/music220a/)
+- [Music 220A course web page](https://ccrma.stanford.edu/courses/220a/)
+- [Code example live demo](https://ccrma.github.io/music220a/)
 
 Note that these examples are supplemental to the course reader, which is
 avilable on the course web page.
@@ -20,13 +20,13 @@ You can find the previous collection of code examples in the
 ## Support
 
 If you have found an error in the code, please file an issue at the
-[tracker](https://github.com/ccrma/music220a/issues).
-
-Patches are encouraged, and may be submitted by forking this project and
-submitting a pull request through GitHub.
+[tracker](https://github.com/ccrma/music220a/issues). Patches are encouraged,
+and may be submitted by forking this repository and submitting a pull request
+through GitHub.
 
 ## License
 
-Copyright 2019 Center for Computer Research of Music and Acoustics. All
-right reserved. This work is licensed under the terms of the MIT license. See
-LICENSE file.
+Copyright (c) 2019 Center for Computer Research of Music and Acoustics. All
+right reserved.
+
+This work is licensed under the terms of the MIT license. See LICENSE file.
