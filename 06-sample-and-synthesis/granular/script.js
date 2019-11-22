@@ -28,7 +28,7 @@ const playGrain = (buffer) => {
   const amp = new GainNode(context);
   source.connect(amp).connect(context.destination);
   source.buffer = buffer;
-  
+
   const now = context.currentTime;
   const duration = buffer.duration * Util.random2f(0.01, 0.02);
   amp.gain.setValueAtTime(0.0, now);
@@ -36,21 +36,23 @@ const playGrain = (buffer) => {
       Util.random2f(0.25, 0.5), now + duration * 0.1);
   amp.gain.exponentialRampToValueAtTime(0.0001, now + duration);
   source.playbackRate.value = Util.random2f(0.01, 0.2);
-  source.start(now + Util.random2f(0.1, 0.4),
-               buffer.duration * Util.random2f(0.3, 0.71),
-               duration);
+  source.start(
+      now + Util.random2f(0.1, 0.4),
+      buffer.duration * Util.random2f(0.3, 0.71),
+      duration);
 };
 
 const generateGrains = () => {
   // Genearates 4 gains per frame (~16.7ms)
-  for (let i = 0; i < 4; ++i)
+  for (let i = 0; i < 4; ++i) {
     playGrain(bufferMap[Math.random() > 0.5 ? 'cauldron' : 'ticking']);
+  }
   requestAnimationFrame(generateGrains);
 };
 
 const setup = async () => {
   bufferMap = await Util.createBufferMap(context, SampleDataCollection);
-  ER.defineButton('button-start', generateGrains, 'once');
 };
 
+ER.defineButton('button-start', generateGrains, 'once');
 ER.start(setup);

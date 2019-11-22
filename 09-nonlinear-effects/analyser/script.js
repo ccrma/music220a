@@ -23,7 +23,7 @@ amp.connect(analyser);
 
 osc.type = 'square';
 osc.frequency.value = 100;
-amp.gain.value = 0.75
+amp.gain.value = 0.75;
 
 let canvas = null;
 let context2D = null;
@@ -35,10 +35,11 @@ const renderWaveform = () => {
   const inc = canvas.width / waveformData.length;
   context2D.beginPath();
   context2D.moveTo(0, canvas.height * 0.5);
-  for (let x = 0, i = 0; x < canvas.width; x += inc, ++i)
+  for (let x = 0, i = 0; x < canvas.width; x += inc, ++i) {
     context2D.lineTo(x, (waveformData[i] * 0.5 + 0.5) * canvas.height);
+  }
   context2D.stroke();
-}
+};
 
 const renderSpectrum = () => {
   analyser.getFloatFrequencyData(frequencyData);
@@ -46,8 +47,9 @@ const renderSpectrum = () => {
   context2D.beginPath();
   context2D.moveTo(0, canvas.height);
   // frequency data: 0.0dBFS ~ -200dbFS
-  for (let x = 0, i = 0; x < canvas.width; x += inc, ++i)
+  for (let x = 0, i = 0; x < canvas.width; x += inc, ++i) {
     context2D.lineTo(x, -frequencyData[i]);
+  }
   context2D.stroke();
 };
 
@@ -56,7 +58,7 @@ const render = () => {
   renderWaveform();
   renderSpectrum();
   requestAnimationFrame(render);
-}
+};
 
 const start = () => {
   osc.start();
@@ -66,7 +68,7 @@ const start = () => {
 const setup = () => {
   canvas = document.querySelector('#visualization');
   context2D = canvas.getContext('2d');
-  ER.defineButton('button-start', start, 'once');
 };
 
+ER.defineButton('button-start', start, 'once');
 ER.start(setup);

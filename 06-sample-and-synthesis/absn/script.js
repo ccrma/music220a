@@ -16,6 +16,7 @@ import ER from '../../lib/ExampleRunner.js';
 import Util from '../../lib/Util.js';
 
 const context = new AudioContext();
+let bufferMap = null;
 
 const playBuffer = (buffer) => {
   const source = new AudioBufferSourceNode(context);
@@ -35,18 +36,17 @@ const playBuffer = (buffer) => {
   // source.playbackRate.linearRampToValueAtTime(0.1, now + 2.5);
   // source.playbackRate.linearRampToValueAtTime(2, now + 5);
   // source.playbackRate.linearRampToValueAtTime(1, now + 7.5);
-  
+
   source.start(now);
   source.stop(now + 10);
 };
 
 const setup = async () => {
-  const bufferMap = await Util.createBufferMap(context, [
+  bufferMap = await Util.createBufferMap(context, [
     {key: 'loop-1', url: '../../sound/loop/loop-1.wav'},
     {key: 'loop-2', url: '../../sound/loop/loop-2.wav'},
   ]);
-
-  ER.defineButton('button-start', () => playBuffer(bufferMap['loop-1']));
 };
 
+ER.defineButton('button-start', () => playBuffer(bufferMap['loop-1']));
 ER.start(setup);

@@ -18,7 +18,7 @@ const context = new AudioContext();
 const master = new GainNode(context);
 master.connect(context.destination);
 
-// The fundamental frequency.
+// The fundamental frequency
 const fundamental = 300;
 
 function addUp() {
@@ -30,9 +30,9 @@ function addUp() {
   const osc6 = new OscillatorNode(context, {frequency: fundamental * 6});
   const osc7 = new OscillatorNode(context, {frequency: fundamental * 7});
   const osc8 = new OscillatorNode(context, {frequency: fundamental * 8});
-  
+
   // The amplitude of n-th partial = 1 / n
-  // This creates 'sawtooth' waveform. Sort of. 
+  // This creates 'sawtooth' waveform. Sort of.
   const amp1 = new GainNode(context, {gain: 1.0});
   const amp2 = new GainNode(context, {gain: 1.0 / 2});
   const amp3 = new GainNode(context, {gain: 1.0 / 3});
@@ -41,7 +41,7 @@ function addUp() {
   const amp6 = new GainNode(context, {gain: 1.0 / 6});
   const amp7 = new GainNode(context, {gain: 1.0 / 7});
   const amp8 = new GainNode(context, {gain: 1.0 / 8});
-  
+
   osc1.connect(amp1).connect(master);
   osc2.connect(amp2).connect(master);
   osc3.connect(amp3).connect(master);
@@ -50,10 +50,10 @@ function addUp() {
   osc6.connect(amp6).connect(master);
   osc7.connect(amp7).connect(master);
   osc8.connect(amp8).connect(master);
-  
+
   const now = context.currentTime;
   const later = now + 4.0;
-        
+
   osc1.start(now);
   osc1.stop(later);
   osc2.start(now);
@@ -70,7 +70,7 @@ function addUp() {
   osc7.stop(later);
   osc8.start(now);
   osc8.stop(later);
-  
+
   // It might be loud, so let's be careful.
   master.gain.value = 1.0 / 8;
 }

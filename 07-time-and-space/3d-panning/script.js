@@ -18,9 +18,10 @@ import Util from '../../lib/Util.js';
 const SampleDataCollection = [
   {key: 'guitar', url: '../../sound/loop/guitar.wav'},
 ];
+let bufferMap = null;
 
 const context = new AudioContext();
-const bufferSource = new AudioBufferSourceNode(context)
+const bufferSource = new AudioBufferSourceNode(context);
 const panner = new PannerNode(context);
 const amp = new GainNode(context);
 bufferSource.connect(panner).connect(amp).connect(context.destination);
@@ -48,9 +49,8 @@ const playBuffer = (audioBuffer) => {
 };
 
 const setup = async () => {
-  const bufferMap = await Util.createBufferMap(context, SampleDataCollection);  
-  ER.defineButton(
-      'button-start', () => playBuffer(bufferMap['guitar']), 'once');
+  bufferMap = await Util.createBufferMap(context, SampleDataCollection);
 };
 
+ER.defineButton('button-start', () => playBuffer(bufferMap['guitar']), 'once');
 ER.start(setup);

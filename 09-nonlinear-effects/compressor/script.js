@@ -18,6 +18,7 @@ import Util from '../../lib/Util.js';
 const SampleDataCollection = [
   {key: 'guitar', url: '../../sound/loop/guitar.wav'},
 ];
+let bufferMap = null;
 
 const context = new AudioContext();
 const compressor = new DynamicsCompressorNode(context);
@@ -32,7 +33,7 @@ compressor.connect(makeup).connect(context.destination);
 compressor.threshold.value = -48; // in dB
 compressor.ratio.value = 18;
 makeup.gain.value = Util.dbtolin(6); // 6dB boost to a linear amplitude
-  
+
 const playBuffer = (buffer) => {
   const bufferSource = new AudioBufferSourceNode(context);
   bufferSource.loop = true;
@@ -42,9 +43,8 @@ const playBuffer = (buffer) => {
 };
 
 const setup = async () => {
-  const bufferMap = await Util.createBufferMap(context, SampleDataCollection);
-  ER.defineButton(
-      'button-start', () => playBuffer(bufferMap['guitar']), 'once');
+  bufferMap = await Util.createBufferMap(context, SampleDataCollection);
 };
 
+ER.defineButton('button-start', () => playBuffer(bufferMap['guitar']), 'once');
 ER.start(setup);

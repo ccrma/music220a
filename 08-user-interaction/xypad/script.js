@@ -36,13 +36,14 @@ let userX = null;
 let userY = null;
 
 const onMouseMove = (event) => {
-  if (!toggleState)
+  if (!toggleState) {
     return;
+  }
 
   const rect = event.target.getBoundingClientRect();
   userX = event.clientX - rect.left;
   userY = event.clientY - rect.top;
-  
+
   // Maps (x, y) coordinate to the frequency of the oscillator and filter.
   const frequency = (userX / canvas.width) * 880 + 110;
   const cutoff = (1 - userY / canvas.height) * 3520 + 440;

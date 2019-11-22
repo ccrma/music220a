@@ -34,26 +34,22 @@ const buildTransferFunction = () => {
     // data[i] = 2 * Math.pow(x, 2) - 1;
     // data[i] = 4 * Math.pow(x, 3) - 3 * x;
     // data[i] = 8 * Math.pow(x, 4) - 8 * Math.pow(x, 2) + 1;
-    
+
     // Overdrive/saturation
     // data[i] = x + x * Math.sin(Math.PI * x) / 5;
     // data[i] = Math.tanh(4 * Math.PI * x);
-    
+
     // Expansion
     // data[i] = Math.pow(x, 5);
-    
+
     // Weird stuffs (be careful with the volume)
     // data[i] = Math.sign(Math.sin(Math.PI * x));
     // data[i] = 1 / x;
     // data[i] = Math.tan((Math.PI * x + Math.PI) / 2);
   }
-    
+
   waveshaper.curve = data;
 };
 
-const setup = async () => {
-  buildTransferFunction();
-  ER.defineButton('button-start', () => osc.start(), 'once');
-};
-
-ER.start(setup);
+ER.defineButton('button-start', () => osc.start(), 'once');
+ER.start(buildTransferFunction);

@@ -16,7 +16,7 @@ import ER from '../../lib/ExampleRunner.js';
 
 const context = new AudioContext();
 
-const saw = new OscillatorNode(context, {type: "sawtooth"});
+const saw = new OscillatorNode(context, {type: 'sawtooth'});
 const biquad = new BiquadFilterNode(context);
 const amp = new GainNode(context);
 saw.connect(biquad).connect(amp).connect(context.destination);

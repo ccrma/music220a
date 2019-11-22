@@ -34,8 +34,9 @@ const setup = () => {
   toggle.state = false;
   toggle.addEventListener('mousedown', () => {
     // If the context is blocked by the autoplay policy, unlock it.
-    if (context.state !== 'running')
+    if (context.state !== 'running') {
       context.resume();
+    }
 
     toggle.state = !toggle.state;
     if (toggle.state) {
@@ -46,7 +47,7 @@ const setup = () => {
       master.gain.value = 0.0;
     }
   });
-  
+
   window.addEventListener('keydown', (event) => {
     osc.frequency.value = Util.mtof(event.keyCode);
     amp.gain.setValueAtTime(0.0, context.currentTime);

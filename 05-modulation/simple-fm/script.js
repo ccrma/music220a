@@ -21,7 +21,7 @@ const dev = new GainNode(context);
 const car = new OscillatorNode(context);
 const amp = new GainNode(context);
 
-let modIndex = 1;
+const modIndex = 1;
 mod.frequency.value = 100;
 dev.gain.value = mod.frequency.value * modIndex;
 car.frequency.value = 100;
@@ -30,16 +30,16 @@ amp.gain.value = 0.5;
 mod.connect(dev).connect(car.frequency);
 car.connect(amp).connect(context.destination);
 
-function startFMSynth() {
+const startFMSynth = () => {
   const now = context.currentTime;
-  const later = context.currentTime + 5
+  const later = context.currentTime + 5;
   mod.start(now);
   car.start(now);
   mod.stop(later);
   car.stop(later);
   dev.gain.setValueAtTime(mod.frequency.value * 1, now);
   dev.gain.linearRampToValueAtTime(mod.frequency.value * 16, later);
-}
+};
 
 ER.defineButton('button-start', startFMSynth, 'once');
 ER.start();

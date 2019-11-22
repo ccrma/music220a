@@ -15,19 +15,16 @@
 import ER from '../../lib/ExampleRunner.js';
 
 const targets = [
-  29.0, 87.5, 116.0, 175.0, 233.0, 
-  350.0, 524.0, 880.0, 1048, 1760,
-  29.0, 87.5, 116.0, 175.0, 233.0,
-  350.0, 524.0, 880.0, 1048, 1760,
-  29.0, 87.5, 116.0, 175.0, 233.0,
-  350.0, 524.0, 880.0, 1048, 1760
+  29.0, 87.5, 116.0, 175.0, 233.0, 350.0, 524.0, 880.0, 1048, 1760,
+  29.0, 87.5, 116.0, 175.0, 233.0, 350.0, 524.0, 880.0, 1048, 1760,
+  29.0, 87.5, 116.0, 175.0, 233.0, 350.0, 524.0, 880.0, 1048, 1760,
 ];
- 
+
 const initials = [];
 const saws = [];
 const amps = [];
 const pans = [];
- 
+
 function playDeepNote() {
   const context = new AudioContext();
 
@@ -52,6 +49,6 @@ function playDeepNote() {
     saws[i].stop(context.currentTime + 8);
   }
 }
- 
+
 ER.defineButton('button-start', playDeepNote, 'once');
 ER.start();

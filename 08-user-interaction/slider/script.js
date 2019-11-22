@@ -35,7 +35,7 @@ const setup = () => {
   osc.frequency.value = slider.value;
   text.textContent = slider.value + 'Hz';
   text.style.opacity = 0.25;
-  
+
   // The toggle button
   const toggle = document.querySelector('#button-toggle');
   toggle.state = false;

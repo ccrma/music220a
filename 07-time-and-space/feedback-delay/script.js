@@ -18,6 +18,7 @@ import Util from '../../lib/Util.js';
 const SampleDataCollection = [
   {key: 'guitar', url: '../../sound/loop/guitar.wav'},
 ];
+let bufferMap = null;
 
 const context = new AudioContext();
 const delay = new DelayNode(context);
@@ -39,8 +40,8 @@ const playBuffer = (audioBuffer) => {
 };
 
 const setup = async () => {
-  const bufferMap = await Util.createBufferMap(context, SampleDataCollection);
-  ER.defineButton('button-start', () => playBuffer(bufferMap['guitar']));
+  bufferMap = await Util.createBufferMap(context, SampleDataCollection);
 };
 
+ER.defineButton('button-start', () => playBuffer(bufferMap['guitar']));
 ER.start(setup);

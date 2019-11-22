@@ -12,7 +12,8 @@
  * GNU General Public License for more details.
  **/
 
-// States
+import ER from '../../lib/ExampleRunner.js';
+
 const fundamental = 220;
 const numberOfHarmonics = 50;
 const frequencies = [];
@@ -23,8 +24,7 @@ for (let i = 1; i <= numberOfHarmonics; ++i) {
   frequencies[i-1] = fundamental * i;
   amplitudes[i-1] = 1.0 / i;
 }
- 
-// Audio graph
+
 const context = new AudioContext();
 const master = new GainNode(context, {gain: 1.0 / numberOfHarmonics});
 master.connect(context.destination);
@@ -37,7 +37,7 @@ for (let i = 0; i < numberOfHarmonics; ++i) {
   osc[i].connect(amp[i]).connect(master);
 }
 
-function addUp() {
+const addUp = () => {
   const now = context.currentTime;
   const later = context.currentTime + numberOfHarmonics * durationFactor;
   for (let i = 0; i < numberOfHarmonics; ++i) {
@@ -45,7 +45,7 @@ function addUp() {
     osc[i].stop(later);
     amp[i].gain.value = amplitudes[i];
   }
-}
+};
 
-document.querySelector('#start-audio')
-        .addEventListener('click', addUp, {once: true});
+ER.defineButton('button-start', addUp, 'once');
+ER.start();

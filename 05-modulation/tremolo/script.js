@@ -33,10 +33,10 @@ lfo.frequency.value = 1;
 depth.gain.value = 0.5;
 amp.gain.value = 1.0 - depth.gain.value;
 
-function startTremolo() {
+const startTremolo = () => {
   osc.start();
   lfo.start();
-}
+};
 
 ER.defineButton('button-start', startTremolo, 'once');
 ER.start();

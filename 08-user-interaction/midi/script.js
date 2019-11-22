@@ -16,14 +16,16 @@ import ER from '../../lib/ExampleRunner.js';
 
 let logDiv = null;
 const appendLog = (message) => {
-  if (!logDiv)
+  if (!logDiv) {
     return;
+  }
 
   const newLine = document.createElement('p');
   newLine.textContent = `${message.type} ${message.value1} ${message.value2}`;
   logDiv.appendChild(newLine);
-  if (logDiv.childNodes.length > 20)
+  if (logDiv.childNodes.length > 20) {
     logDiv.removeChild(logDiv.childNodes[0]);
+  }
 };
 
 const handleMIDIMessage = (event) => {
@@ -40,7 +42,7 @@ const handleMIDIMessage = (event) => {
       type = 'controlchange';
       break;
   }
-  
+
   appendLog({
     type: type,
     value1: message[1],
@@ -50,7 +52,7 @@ const handleMIDIMessage = (event) => {
 
 const setup = async () => {
   logDiv = document.querySelector('#ui-log');
-  
+
   // Connect all the MIDI input devices to |handleMIDIMessage| callback.
   const midiAccess = await navigator.requestMIDIAccess();
   midiAccess.inputs.forEach((input) => {

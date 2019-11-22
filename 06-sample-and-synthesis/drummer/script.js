@@ -28,7 +28,7 @@ const SampleDataCollection = [
 const context = new AudioContext();
 let bufferMap = null;
 
-function handleKeyCode(keyCode) {
+const handleKeyCode = (keyCode) => {
   if (!bufferMap || !(keyCode in bufferMap)) {
     console.log(
         `[handleKeyCode] No matching sample found. (keyCode: ${keyCode})`);
@@ -43,7 +43,7 @@ function handleKeyCode(keyCode) {
   source.buffer = buffer;
   source.start(now);
   source.stop(now + buffer.duration);
-}
+};
 
 const setup = async () => {
   bufferMap = await Util.createBufferMap(context, SampleDataCollection);

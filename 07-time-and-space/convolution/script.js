@@ -20,9 +20,10 @@ const SampleDataCollection = [
   {key: 'big-church', url: '../../sound/ir/big-church.mp3'},
   {key: 'reverse-gate', url: '../../sound/ir/reverse-gate.mp3'},
 ];
+let bufferMap = null;
 
 const context = new AudioContext();
-const bufferSource = new AudioBufferSourceNode(context)
+const bufferSource = new AudioBufferSourceNode(context);
 const reverb = new ConvolverNode(context);
 const wet = new GainNode(context);
 const dry = new GainNode(context);
@@ -41,11 +42,11 @@ const playBuffer = (audioBuffer, irBuffer, mix) => {
 };
 
 const setup = async () => {
-  const bufferMap = await Util.createBufferMap(context, SampleDataCollection);
-  ER.defineButton(
-      'button-start',
-      () => playBuffer(bufferMap['guitar'], bufferMap['big-church'], 1.0),
-      'once');
+  bufferMap = await Util.createBufferMap(context, SampleDataCollection);
 };
 
+ER.defineButton(
+    'button-start',
+    () => playBuffer(bufferMap['guitar'], bufferMap['big-church'], 1.0),
+    'once');
 ER.start(setup);

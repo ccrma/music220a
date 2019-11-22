@@ -48,8 +48,9 @@ const buildTransferFunction = () => {
   const inc = 2.0 / curveData.length;
 
   // For overdrive effect
-  for (let i = 0, x = -1; i < curveData.length; i++, x += inc)
+  for (let i = 0, x = -1; i < curveData.length; i++, x += inc) {
     curveData[i] = Math.tanh(4 * Math.PI * x);
+  }
 
   waveshaper.curve = curveData;
 };
@@ -58,12 +59,12 @@ const playBuffer = (buffer) => {
   const bufferSource = new AudioBufferSourceNode(context);
   bufferSource.buffer = buffer;
   bufferSource.loop = true;
-  
+
   // Run by a WaveShaper,
   bufferSource.connect(waveshaper);
   // Or passthrough.
   // bufferSource.connect(context.destination);
-  
+
   bufferSource.start();
 };
 
@@ -71,11 +72,8 @@ const setup = async () => {
   const bufferMap = await Util.createBufferMap(context, SampleDataCollection);
   plate.buffer = bufferMap['plate'];
   cabinet.buffer = bufferMap['cabinet'];
-  
   buildTransferFunction();
-
-  ER.defineButton(
-      'button-start', () => playBuffer(bufferMap['guitar']), 'once');
 };
 
+ER.defineButton('button-start', () => playBuffer(bufferMap['guitar']), 'once');
 ER.start(setup);

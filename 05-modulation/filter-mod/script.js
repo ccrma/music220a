@@ -34,21 +34,21 @@ lfo.type = 'sine';
 depth.gain.value = 100;
 biquad.Q.value = 10;
 
-function startFilterModulation() {
+const startFilterModulation = () => {
   const now = context.currentTime;
   const later = now + 6;
   osc.start(now);
   osc.stop(later);
   lfo.start(now);
   lfo.stop(later);
-  
+
   lfo.frequency.setValueAtTime(2, now);
   lfo.frequency.exponentialRampToValueAtTime(20, later);
   depth.gain.setValueAtTime(50, now);
   depth.gain.linearRampToValueAtTime(3500, later);
   biquad.frequency.setValueAtTime(200, now);
   biquad.frequency.exponentialRampToValueAtTime(10000, later);
-}
+};
 
 ER.defineButton('button-start', startFilterModulation, 'once');
 ER.start();

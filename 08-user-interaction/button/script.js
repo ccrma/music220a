@@ -47,7 +47,7 @@ const setup = () => {
     moment.style.backgroundColor = Color.White;
     amp1.gain.setTargetAtTime(0, context.currentTime, 0.01);
   });
-  
+
   // Toggle button
   const toggle = document.querySelector('#button-toggle');
   toggle.state = false;

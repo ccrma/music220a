@@ -29,13 +29,13 @@ lfo.frequency.value = 5;
 // Because the modulation range will be -200 ~ 200,
 // the target oscillator's frequency will be modulated
 // to 200Hz(400-200) ~ 600Hz(400+200).
-depth.gain.value = 200; 
+depth.gain.value = 200;
 osc.frequency.value = 400;
 
-function startVibrato() {
+const startVibrato = () => {
   osc.start();
   lfo.start();
-}
+};
 
 ER.defineButton('button-start', startVibrato, 'once');
 ER.start();

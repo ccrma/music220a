@@ -21,21 +21,21 @@ master.connect(context.destination);
 const numberOfOscillators = 40;
 const fundamental = 400;
 const volume = 1.0;
+master.gain.value = 1.0 / numberOfOscillators;
 
-function playPartial(n) {
+const playPartial = (n) => {
   const osc = new OscillatorNode(context, {frequency: fundamental * n});
   const amp = new GainNode(context, {gain: volume / n});
   osc.connect(amp).connect(master);
   osc.start();
   osc.stop(context.currentTime + 1.0);
-}
+};
 
-function playSawtooth() {
-  for (let i = 1; i <= numberOfOscillators; ++i)
+const playSawtooth = () => {
+  for (let i = 1; i <= numberOfOscillators; ++i) {
     playPartial(i);
-}
-
-master.gain.value = 1.0 / numberOfOscillators;
+  }
+};
 
 ER.defineButton('button-start', playSawtooth, 'once');
 ER.start();

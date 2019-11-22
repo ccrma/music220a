@@ -12,6 +12,8 @@
  * GNU General Public License for more details.
  **/
 
+import ER from '../../lib/ExampleRunner.js';
+
 const context = new AudioContext();
 
 const osc = new OscillatorNode(context);
@@ -23,36 +25,41 @@ osc.start();
 osc.type = 'triangle';
 amp.gain.value = 0.0;
 
-let attack = 0.25;
-let decay = 0.5;
-let sustain = 0.6;
-let release = 1.0;
-let playing = false;
+const attack = 0.25;
+const decay = 0.5;
+const sustain = 0.6;
+const release = 1.0;
+let isPlaying = false;
 
-const timeConstantFactor = Math.log(1 / 0.001);
-
-const buttonElement = document.querySelector('#button-noteon');
-
-function noteOn() {
-  if (playing)
+const noteOn = (event) => {
+  if (isPlaying) {
     return;
-  playing = true;
-  buttonElement.textContent = 'NOTE OFF';
+  }
+  isPlaying = true;
+  event.srcElement.textContent = 'NOTE OFF';
   const now = context.currentTime;
+  amp.gain.cancelAndHoldAtTime(now);
   amp.gain.setValueAtTime(0.0, now);
   amp.gain.linearRampToValueAtTime(1.0, now + attack);
   amp.gain.linearRampToValueAtTime(sustain, now + attack + decay);
-}
+};
 
-function noteOff() {
-  if (!playing)
+const releaseTimeConstantFactor = Math.log(1 / 0.001);
+const noteOff = (event) => {
+  if (!isPlaying) {
     return;
+  }
   const now = context.currentTime;
   amp.gain.cancelAndHoldAtTime(now);
-  amp.gain.setTargetAtTime(0.0, now, release / timeConstantFactor);
-  buttonElement.textContent = 'NOTE ON';
-  playing = false;
-}
+  amp.gain.setTargetAtTime(0.0, now, release / releaseTimeConstantFactor);
+  event.srcElement.textContent = 'NOTE ON';
+  isPlaying = false;
+};
 
-buttonElement.addEventListener('mousedown', noteOn);
-buttonElement.addEventListener('mouseup', noteOff);
+const setup = () => {
+  const buttonElement = document.getElementById('button-moment');
+  buttonElement.addEventListener('mousedown', noteOn);
+  buttonElement.addEventListener('mouseup', noteOff);
+};
+
+ER.start(setup);

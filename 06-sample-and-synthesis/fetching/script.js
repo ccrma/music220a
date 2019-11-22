@@ -17,14 +17,14 @@ import ER from '../../lib/ExampleRunner.js';
 const context = new AudioContext();
 let loopBuffer = null;
 
-function playBuffer() {
+const playBuffer = () => {
   const source = new AudioBufferSourceNode(context);
   source.buffer = loopBuffer;
   source.connect(context.destination);
   const now = context.currentTime;
   source.start(now);
   source.stop(now + loopBuffer.duration);
-}
+};
 
 const setup = async () => {
   const response = await fetch('../../sound/loop/loop-1.wav');

@@ -91,11 +91,11 @@ car.start();
 function startFMSynth() {
   const now = context.currentTime;
   egData.forEach((egEntry, index) => {
-    let value = egEntry[0];
+    const value = egEntry[0];
     const time = now + egEntry[1] * p3;
     if (index === 0) {
-      eg1.offset.setValueAtTime(value * p4, time)
-      eg2.offset.setValueAtTime(value * dev2, time)
+      eg1.offset.setValueAtTime(value * p4, time);
+      eg2.offset.setValueAtTime(value * dev2, time);
     } else {
       eg1.offset.linearRampToValueAtTime(value * p4, time);
       eg2.offset.linearRampToValueAtTime(value * dev2, time);
