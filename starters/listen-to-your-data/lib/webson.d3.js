@@ -1,8 +1,26 @@
+/**
+ * Copyright (C) 2021 Center for Computer Research in Music and Acoustics
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ **/
+
+/**
+ * webson.d3: web-based sonification helpers for D3
+ */
+
 /* global d3 */
 
 const ErrorMessages = {
   CSV_FETCH_PARSE_FAILURE:
-    "[WebSon] getCsvData() failed due to fetch/parse failure."
+    "[webson.d3] getCsvData() failed due to fetch/parse failure."
 };
 
 // This code assumes the global instance of D3. This is not ideal, but
