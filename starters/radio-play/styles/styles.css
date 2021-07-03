@@ -1,0 +1,14 @@
+body {
+  padding: 1em;
+}
+
+h1 {
+  font-size: 1.6em;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+p {
+  font-size: 0.9em;
+  line-height: 1.6em;
+}
