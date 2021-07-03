@@ -1,0 +1,60 @@
+body {
+  padding: 1em;
+  color: #ffffff;
+  background-color: #607d8b;
+}
+
+h1 {
+  font-size: 1.6em;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+p {
+  font-size: 0.9em;
+  line-height: 1.6em;
+}
+
+button {
+  font-size: 0.9em !important;
+  width: 115px;
+}
+
+.btn-record {
+  background: #ef5350;
+  color: #ffffff;
+}
+
+select {
+  width: 115px;
+  font-size: 0.9em;
+}
+
+canvas {
+  background-color: #cfd8dc;
+  border-radius: 0.25em;
+  margin: 1em 0;
+  width: 480px;
+  height: 480px;
+}
+
+.center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.container-480 {
+  width: 480px;
+}
+
+.divider {
+  height: 1em;
+}
+
+.file-download-link {
+  line-height: 1.8em;
+  display: block;
+  padding: 0 0.6em;
+  color: #80d8ff;
+}

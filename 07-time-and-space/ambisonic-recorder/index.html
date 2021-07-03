@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.6/build/pure-min.css" integrity="sha384-Uu6IeWbM+gzNVXJcM9XV3SohHtmWE+3VGi496jvgX1jyvDTXfdK+rfZc8C1Aehk5" crossorigin="anonymous">
+    <link rel="stylesheet" href="styles/styles.css">
+    <title>Ambisonics Spatializer/Recorder (Alpha)</title>
+  </head>
+  <body>
+    <div class="pure-g">
+      <div class="pure-u-1-1 center">
+        <div class="container-480">
+          <h1>Ambisonics Spatializer/Recorder (Alpha)</h1>
+          <p>Select a room size and a wall material. Start recording, play
+            sources and move them around. When recording stops, an audio file
+            will be available for download. For more information, see
+            <a href="https://ccrma.stanford.edu/courses/220a/homework/radio-play/" target="_blank">
+            Radio Play homework</a>.</p>
+        </div>
+      </div>
+    </div>
+    <div class="pure-g">
+      <div class="pure-u-1-1 center">
+        <canvas id="canvas-sound-space"></canvas>
+      </div>
+    </div>
+    <div class="pure-g">
+        <div class="pure-u-1-1 center">
+          <div class="container-480">
+            <div class="pure-g">
+              <div class="pure-u-1-4">
+                <label for="room-size-options">Room Size</label>
+              </div>
+              <div class="pure-u-1-4">
+                <select id="room-size-options" class="pure-input-1-2">
+                  <option value="small" selected>Small</option>
+                  <option value="medium">Medium</option>
+                  <option value="large">Large</option>
+                  <option value="huge">Huge</option>
+                </select>
+              </div>
+              <div class="pure-u-1-4">
+                <label for="wall-material-options">Wall Material</label>
+              </div>
+              <div class="pure-u-1-4">
+                <select id="wall-material-options" class="pure-input-1-2">
+                  <option value="brick" selected>Brick</option>
+                  <option value="curtains">Curtains</option>
+                  <option value="marble">Marble</option>
+                  <option value="outside">Outdoors</option>
+                </select>  
+              </div>
+            </div>
+            <div class="divider"></div>
+            <div class="pure-g">
+              <div class="pure-u-1-4">
+                <button class="pure-button" id="btn-play-source-1">Play</button>
+              </div>
+              <div class="pure-u-1-4">
+                <button class="pure-button" id="btn-play-source-2">Play</button>
+              </div>
+              <div class="pure-u-1-4">
+                <button class="pure-button" id="btn-play-source-3">Play</button>
+              </div>
+              <div class="pure-u-1-4">
+                <button class="pure-button" id="btn-play-source-4">Play</button>
+              </div>
+            </div>
+            <div class="divider"></div>
+            <div class="pure-g">
+              <div class="pure-u-1-4">
+                <button class="pure-button btn-record" id="btn-toggle-record">
+                  Record
+                </button>
+              </div>
+              <div class="pure-u-3-4" id="audio-download-link">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div hidden>
+      <img src="resources/control-1.svg" class="icon" alt="source" id="source-icon-1">
+      <img src="resources/control-2.svg" class="icon" alt="source" id="source-icon-2">
+      <img src="resources/control-3.svg" class="icon" alt="source" id="source-icon-3">
+      <img src="resources/control-4.svg" class="icon" alt="source" id="source-icon-4">
+      <img src="resources/headphones.svg" class="icon" alt="source" id="listener-icon">
+    </div>
+    <script src="./js/resonance-audio.min.js"></script>
+    <script src="./index.js" type="module"></script>
+  </body>
+</html>
