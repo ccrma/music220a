@@ -1,17 +1,3 @@
-/**
- * Copyright (C) 2021 Center for Computer Research in Music and Acoustics
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- **/
-
 import StereoRecorderNode from './js/StereoRecorderNode.js';
 import WaveExporter from './js/WaveExporter.js';
 import ToggleButton from './js/ToggleButton.js';
@@ -110,6 +96,9 @@ function updatePositions(elements) {
  * @private
  */
 async function initAudio() {
+  if (audioReady)
+    return;
+
   audioContext = new AudioContext();
   await audioContext.audioWorklet.addModule('./js/StereoRecorderProcessor.js');
   stereoRecorder = new StereoRecorderNode(audioContext);
@@ -165,7 +154,49 @@ const handleToggleOff = (buttonEl) => {
   createDownloadLink();
 };
 
+const loadAudioFiles = async (files) => {
+  console.assert(files.length === 4);
+
+  await initAudio();
+
+  for (let i = 0; i < audioElements.length; i++) {
+    const fileObjectUrl = URL.createObjectURL(files[i]);
+    audioElements[i].src = fileObjectUrl;
+    audioElements[i].crossOrigin = 'anonymous';
+    audioElements[i].load();
+    audioElements[i].loop = true;
+  }
+};
+
+const handleFileInputChange = (event) => {
+  let areFilesValid = true;
+  let errorMessage = '';
+
+  const container = document.getElementById('file-selector-container');
+  const messageDiv = document.getElementById('file-selector-message');
+  container.style.backgroundColor = '#eceff1';
+  messageDiv.textContent = '';
+
+  const files = event.target.files;
+
+  if (files.length !== 4) {
+    areFilesValid = false;
+    errorMessage = '4 files are required.';
+  }
+  
+  if (!areFilesValid) { 
+    container.style.backgroundColor = '#ef9a9a';
+    messageDiv.textContent = errorMessage;
+  } else {
+    loadAudioFiles(files);
+    container.style.backgroundColor = '#a5d6a7';
+  }
+};
+
 let onLoad = function() {
+  document.getElementById('file-selector').addEventListener(
+      'change', handleFileInputChange);
+
   document.getElementById('room-size-options').addEventListener(
     'change', function(event) {
       selectRoomProperties();

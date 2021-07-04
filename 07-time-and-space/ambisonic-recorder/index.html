@@ -1,21 +1,7 @@
-<!--
- Copyright (C) 2021 Center for Computer Research in Music and Acoustics
- 
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
- 
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
- -->
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.6/build/pure-min.css" integrity="sha384-Uu6IeWbM+gzNVXJcM9XV3SohHtmWE+3VGi496jvgX1jyvDTXfdK+rfZc8C1Aehk5" crossorigin="anonymous">
     <link rel="stylesheet" href="styles/styles.css">
     <title>Ambisonics Spatializer/Recorder (Alpha)</title>
@@ -31,6 +17,16 @@
             <a href="https://ccrma.stanford.edu/courses/220a/homework/radio-play/" target="_blank">
             Radio Play homework</a>.</p>
         </div>
+      </div>
+    </div>
+    <div class="pure-g">
+      <div class="pure-u-1-1 center">
+          <div class="container-480">
+            <div id="file-selector-container">
+              <input type="file" id="file-selector" name="file" accept="audio/*"" multiple>
+              <div id="file-selector-message"></div>
+            </div>
+          </div>
       </div>
     </div>
     <div class="pure-g">
