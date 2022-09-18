@@ -1,0 +1,55 @@
+<!-- 
+    based off of tutorials by Mike Mulshine et al
+    dependencies are in https://ccrma.stanford.edu/~cc/220a/webchuck220a/
+-->
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link rel="stylesheet" href="https://ccrma.stanford.edu/~cc/220a/webchuck220a/css/editor.css">
+</head>
+<!---
+Include the ACE editor and webchuck stuff
+-->
+<script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/ace.js" charset="utf-8"></script>
+<script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/editor.js"></script>
+<script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/defer.js"></script>
+<script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/webchuck_host.js"></script>
+<p>this is just a test, nothing but a test <br>
+dependencies are in https://ccrma.stanford.edu/~cc/220a/webchuck220a/
+</p>
+
+<h2 id="HW0">HW0</h2>
+<p>Here is a simple ChucK program that plays a sine wave for a week at 220Hz. Click <strong>"Start"</strong> to run the ChucK code as a shred. What's a shred? This will be explained in due course.</p>
+<pre><div id="editor1" class="ace_editor ace_hidpi ace-chuck" style="font-size: 13px; font-family: Monaco; line-height: 1.25; height: 150px;">
+// Sine oscillator at 220Hz
+SinOsc osc => dac;
+osc.freq(220);
+1::week => now;
+</div></pre>
+<p><input id="run1" type="button" value="Start" /> <input id="stop1" type="button" value="Stop" /> <br/><br/></p>
+
+<script>
+    async function prep() {
+        //await preloadFilenames( serverFilesToPreload );
+        await startChuck();
+        await theChuckReady;
+        theChuck.removeLastCode();
+    }
+
+    var editor1 = newChuckEditor("editor1");
+
+    var run1 = document.getElementById( "run1" );
+    var stop1 = document.getElementById( "stop1" );
+    stop1.disabled = true;
+
+    run1.addEventListener( "click", async function() {
+        await prep();
+        await theChuck.runCode(editor1.getValue());
+        stop1.disabled = false;
+        run1.value = "Replace";
+    });
+
+    stop1.addEventListener( "click", async function() {
+        await theChuck.removeLastCode();
+    });
+</script>
