@@ -20,13 +20,7 @@
   <script>const dataName = 'CO2 (ppm)';</script>
 </head>
 
-<p>this is just a test, nothing but a test <br>
-dependencies are in https://ccrma.stanford.edu/~cc/220a/webchuck220a/ <br>
-https://ccrma.stanford.edu/~cc/220a/hw1/ has this file and the sonification data <br>
-(access control to both dirs set with the same .htaccess in each of them) <br>
-</p>
-
-<h2 id="HW0">HW1</h2>
+<h2> HW1 </h2>
 
 <div id="my_dataviz"></div>
 
@@ -86,8 +80,8 @@ var prependCode = `
   waitForData => now;
   global float years[nVals];
   global float vals[nVals];
-//  while ( years[0]==0.0 ) { 1::ms => now; }; // updating arrays
 `;
+
 startButton.addEventListener( "click", async function() {
   await prep();
   await theChuck.runCode(prependCode+editor1.getValue());

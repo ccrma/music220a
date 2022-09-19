@@ -3,30 +3,47 @@
     dependencies are in https://ccrma.stanford.edu/~cc/220a/webchuck220a/
 -->
 <head>
-<meta charset="utf-8">
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<link rel="stylesheet" href="https://ccrma.stanford.edu/~cc/220a/webchuck220a/css/editor.css">
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!--- make responsive for mobile devices -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<!--- Include the ACE editor and webchuck stuff -->
+  <link rel="stylesheet" href="https://ccrma.stanford.edu/~cc/220a/webchuck220a/css/editor.css">
+  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/ace.js" charset="utf-8"></script>
+  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/editor.js"></script>
+  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/defer.js"></script>
+  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/webchuck_host.js"></script>
+
 </head>
-<!---
-Include the ACE editor and webchuck stuff
--->
-<script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/ace.js" charset="utf-8"></script>
-<script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/editor.js"></script>
-<script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/defer.js"></script>
-<script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/webchuck_host.js"></script>
-<p>this is just a test, nothing but a test <br>
-dependencies are in https://ccrma.stanford.edu/~cc/220a/webchuck220a/
+
+<p>Homework 0 is a test of systems that'll be used for the following homeworks.
 </p>
 
-<h2 id="HW0">HW0</h2>
-<p>Here is a simple ChucK program that plays a sine wave for a week at 220Hz. Click <strong>"Start"</strong> to run the ChucK code as a shred. What's a shred? This will be explained in due course.</p>
-<pre><div id="editor1" class="ace_editor ace_hidpi ace-chuck" style="font-size: 13px; font-family: Monaco; line-height: 1.25; height: 150px;">
-// Sine oscillator at 220Hz
-SinOsc osc => dac;
-osc.freq(220);
-1::week => now;
+<h2> HW0 </h2>
+<p>Here is a simple ChucK program that plays a sine wave for a week at 220Hz. Click <strong>"Start"</strong> to run the ChucK code.</p>
+
+//////////////////////////////////////////////////// <br>
+suggestions (copy and replace any of these items in live code) <br>   
+<pre><div id="editor2" class="ace_editor ace_hidpi ace-chuck" ">
+  // change timbre
+  SawOsc osc => dac; 
+  // change frequency
+  osc.freq(1000); 
+  // change duration
+  100::ms => now; 
 </div></pre>
-<p><input id="run1" type="button" value="Start" /> <input id="stop1" type="button" value="Stop" /> <br/><br/></p>
+//////////////////////////////////////////////////// <br>
+live code
+<pre><div id="editor1" class="ace_editor ace_hidpi ace-chuck" ">  // Sine oscillator at 220Hz
+  SinOsc osc => dac;
+  osc.freq(220);
+  1::week => now;
+</div></pre>
+
+<p>
+<input id="startButton" type="button" value="Start" /> 
+<input id="stopButton" type="button" value="Stop" /> <br/><br/>
+</p>
 
 <script>
     async function prep() {
@@ -36,20 +53,34 @@ osc.freq(220);
         theChuck.removeLastCode();
     }
 
-    var editor1 = newChuckEditor("editor1");
+var editor1 = newChuckEditor("editor1");
+var editor2 = newChuckEditor("editor2");
+editor2.setOptions({
+  showLineNumbers: false
+  , showGutter: false
+});
 
-    var run1 = document.getElementById( "run1" );
-    var stop1 = document.getElementById( "stop1" );
-    stop1.disabled = true;
+var prependCode = `//  none needed
+`;
 
-    run1.addEventListener( "click", async function() {
-        await prep();
-        await theChuck.runCode(editor1.getValue());
-        stop1.disabled = false;
-        run1.value = "Replace";
-    });
+var startButton = document.getElementById( "startButton" );
+var stopButton = document.getElementById( "stopButton" );
+stopButton.disabled = true;
+startButton.style.height = '60px';
+startButton.style.width= '120px';
+stopButton.style.height = '60px';
+stopButton.style.width= '120px';
 
-    stop1.addEventListener( "click", async function() {
-        await theChuck.removeLastCode();
-    });
+startButton.addEventListener( "click", async function() {
+  await prep();
+  await theChuck.runCode(prependCode+editor1.getValue());
+  stopButton.disabled = false;
+  startButton.value = "Replace";
+  await new Promise(r => setTimeout(r, 100));
+  getCsvDataLengthThenData(dataURL, dataFilter);
+});
+
+stopButton.addEventListener( "click", async function() {
+  await theChuck.removeLastCode();
+});
 </script>
