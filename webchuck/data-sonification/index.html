@@ -102,9 +102,13 @@ const dataFilter = (row) => {
 
   // Arranges the given row into a preferred form.
   const filteredRow = {
-    // The first column is a date in decimal.
+    // The first column (row[0]) produces a decimal year.
+    // The incoming source data could be in different formats depending on the project.
+    // Use this to read strings, like 2021-09-26, and convert them to decimal year.
+    // year: (1969.5 + (Date.parse(row[0])) / (31556925993.6) ),
+    // Or use this to read in a decimal year with no conversion needed.
     year: parseFloat(row[0]),
-    // The second column is the actual value.
+    // The second column (row[1]) produces the actual value.
     value: parseFloat(row[1])
   };
 
