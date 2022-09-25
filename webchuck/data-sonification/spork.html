@@ -24,7 +24,7 @@
 </head>
 
 <!--- title the project, place the graph and add project description -->
-<h2> HW1 </h2>
+<h2> HW1 - spork it!</h2>
 <div id="my_dataviz"></div>
 <p>Here is a simple ChucK program that performs the above dataset with a sine wave. Click <strong>"Start"</strong> to run the ChucK code. Try out some live coding by editing something and then clicking <strong>"Replace"</strong> to hear your changes. Suggestions include, for example, lowering the 100::ms interval to speed up the tempo.</p>
 
@@ -42,11 +42,17 @@ suggestions (copy and replace any of these items in live code) <br>
 //////////////////////////////////////////////////// <br>
 live code
 <pre><div id="liveCodeEditor" class="ace_editor ace_hidpi ace-chuck" ">  50::ms => now; // start after 50ms
-  SinOsc osc => dac; // play the data with a sine wave
-  for (0 => int i; i < nVals; i++) {
-    osc.freq(vals[i]*1000+200); // data values in range 0 - 1
-    100::ms => now;
-  }</div></pre>
+  fun void go()
+  {
+    SinOsc osc => dac; // play the data with a sine wave
+    for (0 => int i; i < nVals; i++) {
+      osc.freq(vals[i]*1000+200); // data values in range 0 - 1
+      100::ms => now;
+    }    
+  }
+  spork ~ go();
+  while (true) 1::ms => now; // keep the main shred alive so we don't quit
+</div></pre>
     
 <!--- button elements -->
 <p>
