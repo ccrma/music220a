@@ -26,23 +26,28 @@
 <!--- title the project, place the graph and add project description -->
 <h2> HW1 - spork it! TWICE!!</h2>
 <div id="my_dataviz"></div>
-<p>Here is a simple ChucK program that performs the above dataset with a sine wave. Click <strong>"Start"</strong> to run the ChucK code. Try out some live coding by editing something and then clicking <strong>"Replace"</strong> to hear your changes. Suggestions include, for example, lowering the 100::ms interval to speed up the tempo.</p>
+<p>...with some different suggested parameterizations.</p>
 
 <!--- Chuck editor blocks with Chuck code (suggestions, live code) -->
 //////////////////////////////////////////////////// <br>
-suggestions (copy and replace any of these items in live code) <br>   
+suggestions<br>   
 <pre><div id="suggestionsEditor" class="ace_editor ace_hidpi ace-chuck" ">
-  // change timbre
-  SawOsc osc => dac; 
-  // change pitch range
-  osc.freq(vals[i]*1000+500); 
-  // change tempo
-  10::ms => now; 
+  fun void go(int updateRate, float freqOffset, int chan)
+  {
+    SinOsc osc => dac.chan(chan); // play the data with a sine wave
+    for (0 => int i; i < nVals; i++) {
+      osc.gain (0.15); // reduce gain because we'll be layering more generators
+      osc.freq(vals[i]*1000+freqOffset); // data values in range 0 - 1
+      updateRate::ms => now;
+    }    
+  }
+  spork ~ go(100, 200, 0); // left side
+  1500::ms => now;
+  spork ~ go(150, 300, 1); // slower, higher, right side
 </div></pre>
 //////////////////////////////////////////////////// <br>
 live code
 <pre><div id="liveCodeEditor" class="ace_editor ace_hidpi ace-chuck" ">  50::ms => now; // start after 50ms
-  50::ms => now; // start after 50ms
   fun void go()
   {
     SinOsc osc => dac; // play the data with a sine wave
@@ -55,6 +60,8 @@ live code
   spork ~ go();
   1500::ms => now;
   spork ~ go();
+  
+  // always keep this main shred alive (like with this infinite loop)
   while (true) 1::ms => now; // keep the main shred alive so we don't quit
 </div></pre>
     
