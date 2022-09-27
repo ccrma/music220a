@@ -1,0 +1,78 @@
+<!-- 
+    based off of tutorials by Mike Mulshine et al
+    dependencies are in https://ccrma.stanford.edu/~cc/220a/webchuck220a/
+-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!--- make responsive for mobile devices -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<!--- Include the ACE editor and webchuck stuff -->
+  <link rel="stylesheet" href="https://ccrma.stanford.edu/~cc/220a/webchuck220a/css/editor.css">
+  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/ace.js" charset="utf-8"></script>
+  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/editor.js"></script>
+  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/defer.js"></script>
+  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/webchuck_host.js"></script>
+
+</head>
+
+<p>Lab (related to hw0).
+</p>
+
+<h2> Imitate Me </h2>
+<p>Hit "start" to play the target and adjust the live code on
+ <a href="https://ccrma.stanford.edu/courses/220a/examples/webchuck-hello/">this page</a> 
+ to match.</p>
+<p>(hint #1) Different oscillator / UGens are listed
+ <a href="https://chuck.stanford.edu/doc/program/ugen.html">here</a>.</p>
+//////////////////////////////////////////////////// <br>
+(hint #2) use these to set the tones and timing <br>   
+<pre><div id="editor2" class="ace_editor ace_hidpi ace-chuck" ">
+  osc.freq( put_a_frequency_here ); // in hertz
+  osc.gain( put_an_amplitude_here ); // between 0.0 and 1.0
+  put_duration_here::ms => now; // some number of milliseconds
+
+</div></pre>
+
+<p>
+<input id="startButton" type="button" value="Start" /> 
+</p>
+
+<script>
+    async function prep() {
+        //await preloadFilenames( serverFilesToPreload );
+        await startChuck();
+        await theChuckReady;
+        theChuck.removeLastCode();
+    }
+
+var editor2 = newChuckEditor("editor2");
+editor2.setOptions({
+  showLineNumbers: false
+  , showGutter: false
+});
+
+var prependCode = `  SqrOsc osc => dac;
+  osc.freq(440);
+  osc.gain(0.5);
+  500::ms => now;
+  osc.gain(0.0);
+  500::ms => now;
+  osc.freq(660);
+  osc.gain(0.05);
+  500::ms => now;
+`;
+
+var startButton = document.getElementById( "startButton" );
+startButton.style.height = '60px';
+startButton.style.width= '120px';
+
+startButton.addEventListener( "click", async function() {
+  await prep();
+  await theChuck.runCode(prependCode );
+//  startButton.value = "Repeat";
+  await new Promise(r => setTimeout(r, 100));
+  getCsvDataLengthThenData(dataURL, dataFilter);
+});
+
+</script>
