@@ -31,7 +31,7 @@
 <!--- Chuck editor blocks with Chuck code (suggestions, live code) -->
 //////////////////////////////////////////////////// <br>
 suggestions (copy and replace any of these items in live code) <br>   
-<pre><div id="suggestionsEditor" class="ace_editor ace_hidpi ace-chuck" ">
+<pre><div id="suggestionsEditor" class="ace_editor ace_hidpi ace-chuck">
   // change timbre
   SawOsc osc => dac; 
   // change pitch range
@@ -41,7 +41,7 @@ suggestions (copy and replace any of these items in live code) <br>
 </div></pre>
 //////////////////////////////////////////////////// <br>
 live code
-<pre><div id="liveCodeEditor" class="ace_editor ace_hidpi ace-chuck" ">  50::ms => now; // start after 50ms
+<pre><div id="liveCodeEditor" class="ace_editor ace_hidpi ace-chuck">  50::ms => now; // start after 50ms
   SinOsc osc => dac; // play the data with a sine wave
   for (0 => int i; i < nVals; i++) {
     osc.freq(vals[i]*1000+200); // data values in range 0 - 1

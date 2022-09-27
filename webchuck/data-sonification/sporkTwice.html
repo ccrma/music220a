@@ -31,7 +31,7 @@
 <!--- Chuck editor blocks with Chuck code (suggestions, live code) -->
 //////////////////////////////////////////////////// <br>
 suggestions<br>   
-<pre><div id="suggestionsEditor" class="ace_editor ace_hidpi ace-chuck" ">
+<pre><div id="suggestionsEditor" class="ace_editor ace_hidpi ace-chuck">
   fun void go(int updateRate, float freqOffset, int chan)
   {
     SinOsc osc => dac.chan(chan); // play the data with a sine wave
@@ -47,7 +47,7 @@ suggestions<br>
 </div></pre>
 //////////////////////////////////////////////////// <br>
 live code
-<pre><div id="liveCodeEditor" class="ace_editor ace_hidpi ace-chuck" ">  50::ms => now; // start after 50ms
+<pre><div id="liveCodeEditor" class="ace_editor ace_hidpi ace-chuck">  50::ms => now; // start after 50ms
   fun void go()
   {
     SinOsc osc => dac; // play the data with a sine wave
