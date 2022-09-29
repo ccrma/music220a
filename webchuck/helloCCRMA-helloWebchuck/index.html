@@ -76,8 +76,6 @@ startButton.addEventListener( "click", async function() {
   await theChuck.runCode(prependCode+editor1.getValue());
   stopButton.disabled = false;
   startButton.value = "Replace";
-  await new Promise(r => setTimeout(r, 100));
-  getCsvDataLengthThenData(dataURL, dataFilter);
 });
 
 stopButton.addEventListener( "click", async function() {

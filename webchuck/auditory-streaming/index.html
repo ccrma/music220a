@@ -1,0 +1,141 @@
+<!-- 
+    based off of tutorials by Mike Mulshine et al
+    dependencies are in https://ccrma.stanford.edu/~cc/220a/webchuck220a/
+-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!--- make responsive for mobile devices -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<!--- Include the ACE editor and webchuck stuff -->
+  <link rel="stylesheet" href="https://ccrma.stanford.edu/~cc/220a/webchuck220a/css/editor.css">
+  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/ace.js" charset="utf-8"></script>
+  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/editor.js"></script>
+  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/defer.js"></script>
+  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/webchuck_host.js"></script>
+
+</head>
+
+<p>Homework 2 synthesizes an auditory streaming illusion.
+</p>
+
+<h2> HW2 </h2>
+<p>Here is a simple ChucK program that plays an FM tone.</p>
+
+//////////////////////////////////////////////////// <br>
+suggestions (copy and replace any of these items in live code) <br>   
+<pre><div id="editor2" class="ace_editor ace_hidpi ace-chuck">
+[.01,.4,.5,.1] @=> float carrierADSR;
+[.01,.4,1.0,.1] @=> float modulatorADSR;
+playFM( 1::second, 440.0, 1.0, carrierADSR, 1.0, 10.0, modulatorADSR;
+</div></pre>
+//////////////////////////////////////////////////// <br>
+live code
+<pre><div id="editor1" class="ace_editor ace_hidpi ace-chuck">  
+  class FMFS
+{ // two typical uses of the ADSR envelope unit generator...
+    Step unity => ADSR envM => blackhole; //...as a separate signal
+    SinOsc mod => blackhole;
+    SinOsc car => ADSR envC => Gain out;  //...as an inline modifier of a signal
+    car.gain(0.2);
+    float freq, index, ratio; // the parameters for our FM patch
+
+    fun void fm() // this patch is where the work is
+    {
+      while (true)
+      {
+        envM.last() * index => float currentIndex; // time-varying index
+        mod.gain( freq * currentIndex );    // modulator gain (index depends on frequency)
+        mod.freq( freq * ratio );           // modulator frequency (a ratio of frequency) 
+        car.freq( freq + mod.last() );      // frequency + modulator signal = FM 
+        1::samp => now;
+      }
+    }
+    spork ~fm(); // run the FM patch
+
+    // function to play a note on our FM patch
+    fun void playFM( dur length, float pitch, float pitchRatio, float carrierADSR[], float modulationRatio, float mGain, float modulatorADSR[] ) 
+    {
+        // set patch values
+        pitchRatio * pitch => freq;
+        modulationRatio => ratio;
+        mGain => index;
+       // run the envelopes
+        spork ~ playEnv( envC, length, carrierADSR );
+        spork ~ playEnv( envM, length, modulatorADSR );
+        length => now; // wait until the note is done
+    }
+
+    fun void playEnv( ADSR env, dur length, float adsrValues[] )
+    {
+        // set values for ADSR envelope depending on length
+        length * adsrValues[0] => dur A;
+        length * adsrValues[1] => dur D;
+        adsrValues[2] => float S;
+        length * adsrValues[3] => dur R;
+        
+        // set up ADSR envelope for this note
+        env.set( A, D, S, R );
+        // start envelope (attack is first segment)
+        env.keyOn();
+        // wait through A+D+S, before R
+        length-env.releaseTime() => now;
+        // trigger release segment
+        env.keyOff();
+        // wait for release to finish
+        env.releaseTime() => now;
+    }
+} 
+FMFS fm;
+[.01,.4,.5,.1] @=> float carrierADSR[];
+[.01,.4,1.0,.1] @=> float modulatorADSR[];
+fm.playFM( 1::second, 440.0, 1.0, carrierADSR, 1.0, 10.0, modulatorADSR);
+1::second;
+
+
+</div></pre>
+
+<p>
+<input id="startButton" type="button" value="Start" /> 
+<input id="stopButton" type="button" value="Stop" /> <br/><br/>
+</p>
+
+<script>
+    async function prep() {
+        //await preloadFilenames( serverFilesToPreload );
+        await startChuck();
+        await theChuckReady;
+        theChuck.removeLastCode();
+    }
+
+var editor1 = newChuckEditor("editor1");
+var editor2 = newChuckEditor("editor2");
+editor2.setOptions({
+  showLineNumbers: false
+  , showGutter: false
+});
+
+var prependCode = `//  none needed
+`;
+
+var startButton = document.getElementById( "startButton" );
+var stopButton = document.getElementById( "stopButton" );
+stopButton.disabled = true;
+startButton.style.height = '60px';
+startButton.style.width= '120px';
+stopButton.style.height = '60px';
+stopButton.style.width= '120px';
+
+startButton.addEventListener( "click", async function() {
+  await prep();
+  await theChuck.runCode(prependCode+editor1.getValue());
+  stopButton.disabled = false;
+  startButton.value = "Replace";
+  await new Promise(r => setTimeout(r, 100));
+//  getCsvDataLengthThenData(dataURL, dataFilter);
+});
+
+stopButton.addEventListener( "click", async function() {
+  await theChuck.removeLastCode();
+});
+</script>
