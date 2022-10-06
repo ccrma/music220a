@@ -95,7 +95,7 @@ class FMFS
       playFM(0.9::second, 440.0, 1.0, [.01,.4,.5,.1], 1.0, 10.0, [.01,.4,1.0,.1]);
       out =< dac; // disconnect output
     }    
-}  // end of class declaration: FMFS
+}  // end of FMFS class definition 
 
 FMFS fm; // instantiate an FMFS
 spork ~fm.playFMtestTone(); // play a default tone
