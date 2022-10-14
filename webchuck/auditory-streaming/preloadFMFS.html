@@ -16,86 +16,23 @@
 
 </head>
 
-<p>Homework 2 is about synthesizing an auditory streaming illusion using FM tones.
+<p>Homework 2 synthesizes an auditory streaming illusion.
 </p>
 
-<h2> Custom FM synth written as a chuck class </h2>
-<p>Simple FM uses 2 oscillators. This example applies separate ADSR envelopes to each.</p>
+<h2> HW2 </h2>
+<p>Here is a simple ChucK program that plays an FM tone. It preloads the custom public FMFS class from the file FMFS.ck and uses it in the code below. </p>
 
 //////////////////////////////////////////////////// <br>
 suggestions (copy and replace any of these items in live code) <br>   
 <pre><div id="editor2" class="ace_editor ace_hidpi ace-chuck">
-  PulseOsc  
-  SqrOsc  
-  TriOsc  
-  SawOsc</div></pre>
+[.01,.4,.5,.1] @=> float carrierADSR;
+[.01,.4,1.0,.1] @=> float modulatorADSR;
+playFM( 1::second, 440.0, 1.0, carrierADSR, 1.0, 10.0, modulatorADSR;
+</div></pre>
 //////////////////////////////////////////////////// <br>
 live code
 <pre><div id="editor1" class="ace_editor ace_hidpi ace-chuck">  
   
-// -------------------------------------------------------------
-// @class FMFS
-// fm implementation from scratch with envelopes
-// @author 2015 Madeline Huberth, 2022 version by CC
-class FMFS
-{ // two typical uses of the ADSR envelope unit generator...
-    Step unity => ADSR envM => blackhole; //...as a separate signal
-    SinOsc mod => blackhole;
-    SinOsc car => ADSR envC => Gain out;  //...as an inline modifier of a signal
-    car.gain(0.2);
-    float freq, index, ratio; // the parameters for our FM patch
-    fun void fm() // this patch is where the work is
-    {
-      while (true)
-      {
-        envM.last() * index => float currentIndex; // time-varying index
-        mod.gain( freq * currentIndex );    // modulator gain (index depends on frequency)
-        mod.freq( freq * ratio );           // modulator frequency (a ratio of frequency) 
-        car.freq( freq + mod.last() );      // frequency + modulator signal = FM 
-        1::samp => now;
-      }
-    }
-    spork ~fm(); // run the FM patch
-
-    // function to play a note on our FM patch
-    fun void playFM( dur length, float pitch, float pitchRatio, float carrierADSR[], float modulationRatio, float mGain, float modulatorADSR[] ) 
-    {
-        // set patch values
-        pitchRatio * pitch => freq;
-        modulationRatio => ratio;
-        mGain => index;
-       // run the envelopes
-        spork ~ playEnv( envC, length, carrierADSR );
-        spork ~ playEnv( envM, length, modulatorADSR );
-        length => now; // wait until the note is done
-    }
-
-    fun void playEnv( ADSR env, dur length, float adsrValues[] )
-    {
-        // set values for ADSR envelope depending on length
-        length * adsrValues[0] => dur A;
-        length * adsrValues[1] => dur D;
-        adsrValues[2] => float S;
-        length * adsrValues[3] => dur R;
-        
-        // set up ADSR envelope for this note
-        env.set( A, D, S, R );
-        // start envelope (attack is first segment)
-        env.keyOn();
-        // wait through A+D+S, before R
-        length-env.releaseTime() => now;
-        // trigger release segment
-        env.keyOff();
-        // wait for release to finish
-        env.releaseTime() => now;
-    }
-    fun void playFMtestTone() 
-    { 
-      out => dac; // connect output
-      playFM(0.9::second, 440.0, 1.0, [.01,.4,.5,.1], 1.0, 10.0, [.01,.4,1.0,.1]);
-      out =< dac; // disconnect output
-    }    
-}  // end of FMFS class definition 
 
 FMFS fm; // instantiate an FMFS
 spork ~fm.playFMtestTone(); // play a default tone
@@ -120,11 +57,24 @@ spork ~fm.playFM( 2::second, 840.0, 1.0, carrierADSR, 1.0, 10.0, modulatorADSR);
 </p>
 
 <script>
+    var preloaded = false;
+    var serverFilesToPreload = [
+        {
+            serverFilename: 'https://ccrma.stanford.edu/~cc/220a/hw2/FMFS.ck',
+            virtualFilename: 'FMFS.ck'
+        }
+    ];
     async function prep() {
-        //await preloadFilenames( serverFilesToPreload );
+        if (!preloaded) {
+          await preloadFilenames( serverFilesToPreload );
+        }
         await startChuck();
         await theChuckReady;
         theChuck.removeLastCode();
+        if (!preloaded) {
+          await theChuck.runFile("FMFS.ck");
+          preloaded = true;
+        }
     }
 
 var editor1 = newChuckEditor("editor1");
@@ -151,7 +101,6 @@ startButton.addEventListener( "click", async function() {
   stopButton.disabled = false;
   startButton.value = "Replace";
   await new Promise(r => setTimeout(r, 100));
-//  getCsvDataLengthThenData(dataURL, dataFilter);
 });
 
 stopButton.addEventListener( "click", async function() {
