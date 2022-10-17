@@ -16,30 +16,36 @@
 
 </head>
 
-<p>Homework 2 is about synthesizing an auditory streaming illusion using FM tones.
+<p>Homework 2 synthesizes an auditory streaming illusion.
 </p>
 
-<h2> Preloading of the pattern class</h2>
-<p>Like 4against3.html, click the mouse to start an accelerating pattern. This demonstrates how to move the code for the IsoRhythm class to a separate .ck file which gets preloaded, simplifying the amount of code displayed here. The IsoRhythm class has been defined as a public class in the file isoRhythm.ck. By preloading that file the class becomes available for use in the live code below.
-</p>
+<h2> HW2 </h2>
+<p>FM tones in a monophonic 4 against 3 pattern.</p>
 
+//////////////////////////////////////////////////// <br>
+suggestion (copy this whole and replace the live code) <br>   
 <pre><div id="editor2" class="ace_editor ace_hidpi ace-chuck">
+ISO iso[3];
+spork ~iso[0].go(30::second, 0.97, 160::ms);
+1::second => now;
+spork ~iso[1].go(29::second, 0.96, 150::ms);
+1::second => now;
+spork ~iso[2].go(48::second, 0.95, 140::ms);
+30::second => now;
+ISO iso2[3];
+spork ~iso2[0].go(30::second, 0.97, 160::ms);
+1::second => now;
+spork ~iso2[1].go(29::second, 0.96, 150::ms);
+1::second => now;
+spork ~iso2[2].go(28::second, 0.95, 140::ms);
+30::second => now;
 </div></pre>
 //////////////////////////////////////////////////// <br>
 live code
 <pre><div id="editor1" class="ace_editor ace_hidpi ace-chuck">  
-// global int mouseX, mouseY; // mouse position is unused
-global Event playRiff;
-IsoRhythm iso; // instantiate an IsoRhythm object
-fun void mousePlay() {
-  while (true) {
-    playRiff => now;
-// howLong, accel, minInterOnsetInterval
-    spork ~ iso.play(15::second, 0.9, 40::ms);
-  }
-}
-spork ~ mousePlay();
-1::week => now;
+ISO iso;
+spork ~iso.go(20::second, 0.95, 160::ms);
+20::second => now;
 </div></pre>
 
 <p>
@@ -51,8 +57,12 @@ spork ~ mousePlay();
     var preloaded = false;
     var serverFilesToPreload = [
         {
-            serverFilename: 'https://ccrma.stanford.edu/~cc/220a/hw2/isoRhythm.ck',
-            virtualFilename: 'isoRhythm.ck'
+            serverFilename: 'https://ccrma.stanford.edu/~cc/220a/hw2/FMFS.ck',
+            virtualFilename: 'FMFS.ck'
+        },
+        {
+            serverFilename: 'https://ccrma.stanford.edu/~cc/220a/hw2/iso.ck',
+            virtualFilename: 'iso.ck'
         }
     ];
     async function prep() {
@@ -63,7 +73,8 @@ spork ~ mousePlay();
         await theChuckReady;
         theChuck.removeLastCode();
         if (!preloaded) {
-          await theChuck.runFile("isoRhythm.ck");
+          await theChuck.runFile("FMFS.ck");
+          await theChuck.runFile("iso.ck");
           preloaded = true;
         }
     }
@@ -92,29 +103,10 @@ startButton.addEventListener( "click", async function() {
   stopButton.disabled = false;
   startButton.value = "Replace";
   await new Promise(r => setTimeout(r, 100));
+//  getCsvDataLengthThenData(dataURL, dataFilter);
 });
 
 stopButton.addEventListener( "click", async function() {
   await theChuck.removeLastCode();
 });
-
-// mouse interface
-var clickOn = true;
-theChuckReady.then( function() {
-  if( window.Event ) { 
-    document.captureEvents( Event.MOUSEMOVE );
-  }
-  document.onmousemove = function( e )  {
-      var x = (window.Event) ? e.pageX : event.clientX + (document.documentElement.scrollLeft ?     
-        document.documentElement.scrollLeft : document.body.scrollLeft);
-      var y = (window.Event) ? e.pageY : event.clientY + (document.documentElement.scrollTop ? 
-        document.documentElement.scrollTop : document.body.scrollTop);
-//      theChuck.setInt( "mouseX", x );
-//      theChuck.setInt( "mouseY", y );
-    }
-  document.onmousedown = function( e )  {
-        theChuck.broadcastEvent("playRiff");
-  }
-});
-
 </script>

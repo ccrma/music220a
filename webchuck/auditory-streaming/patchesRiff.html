@@ -19,26 +19,57 @@
 <p>Homework 2 is about synthesizing an auditory streaming illusion using FM tones.
 </p>
 
-<h2> Preloading of the pattern class</h2>
-<p>Like 4against3.html, click the mouse to start an accelerating pattern. This demonstrates how to move the code for the IsoRhythm class to a separate .ck file which gets preloaded, simplifying the amount of code displayed here. The IsoRhythm class has been defined as a public class in the file isoRhythm.ck. By preloading that file the class becomes available for use in the live code below.
+<h2> Built-in FM instruments </h2>
+<p>This page demo's a real-time FM synthpatch with mouse / touchpad interface.<br> After clicking the start button, play tones by clicking the mouse button. Move the mouse laterally to change the pitch (and stereo pan position). Helpful hint: find a spot on the page where you can move the mouse without affecting the contents of the live code editor, for example, below the buttons. <br>See the Chuck UGen 
+ <a href="https://chuck.cs.princeton.edu/doc/program/ugen_full.html#BeeThree">documentation</a> 
+ of BeeThree and friends. These are implementations of the STK (Synthesis ToolKit) C++
+ <a href="https://ccrma.stanford.edu/software/stk/classstk_1_1FM.html">FM classes</a>.
 </p>
 
+//////////////////////////////////////////////////// <br>
+suggestions (test these patches by replacing BeeThree) <br>   
 <pre><div id="editor2" class="ace_editor ace_hidpi ace-chuck">
+    FMVoices 
+    HevyMetl
+    PercFlut
+    Rhodey
+    TubeBell
+    Wurley
 </div></pre>
 //////////////////////////////////////////////////// <br>
 live code
 <pre><div id="editor1" class="ace_editor ace_hidpi ace-chuck">  
-// global int mouseX, mouseY; // mouse position is unused
+global int mouseX, mouseY;
 global Event playRiff;
-IsoRhythm iso; // instantiate an IsoRhythm object
+float panValue;
+
+BeeThree fm => Pan2 stereo => dac;
+fun void riffPlay() {
+  for (0 => int i; i < 5; i++) {
+    Std.mtof( 60 + i ) => fm.freq;
+    stereo.pan( (i-2) / 2.0 );
+    fm.noteOn(1.0);
+    .1::second => now;
+    fm.noteOff(1.0);
+    .1::second => now;
+  }
+}
 fun void mousePlay() {
   while (true) {
     playRiff => now;
-// howLong, accel, minInterOnsetInterval
-    spork ~ iso.play(15::second, 0.9, 40::ms);
+    spork ~ riffPlay();
   }
 }
 spork ~ mousePlay();
+fun void RespondToMouseMovement() {
+  while( true ) {
+    mouseX*0.5 => fm.freq;
+    Math.sin(mouseX*0.5) => panValue;
+//    mouseY*0.5 => index;
+    10::ms => now;
+  }
+}
+spork ~ RespondToMouseMovement();
 1::week => now;
 </div></pre>
 
@@ -48,24 +79,10 @@ spork ~ mousePlay();
 </p>
 
 <script>
-    var preloaded = false;
-    var serverFilesToPreload = [
-        {
-            serverFilename: 'https://ccrma.stanford.edu/~cc/220a/hw2/isoRhythm.ck',
-            virtualFilename: 'isoRhythm.ck'
-        }
-    ];
     async function prep() {
-        if (!preloaded) {
-          await preloadFilenames( serverFilesToPreload );
-        }
         await startChuck();
         await theChuckReady;
         theChuck.removeLastCode();
-        if (!preloaded) {
-          await theChuck.runFile("isoRhythm.ck");
-          preloaded = true;
-        }
     }
 
 var editor1 = newChuckEditor("editor1");
@@ -109,8 +126,8 @@ theChuckReady.then( function() {
         document.documentElement.scrollLeft : document.body.scrollLeft);
       var y = (window.Event) ? e.pageY : event.clientY + (document.documentElement.scrollTop ? 
         document.documentElement.scrollTop : document.body.scrollTop);
-//      theChuck.setInt( "mouseX", x );
-//      theChuck.setInt( "mouseY", y );
+      theChuck.setInt( "mouseX", x );
+      theChuck.setInt( "mouseY", y );
     }
   document.onmousedown = function( e )  {
         theChuck.broadcastEvent("playRiff");

@@ -19,26 +19,54 @@
 <p>Homework 2 is about synthesizing an auditory streaming illusion using FM tones.
 </p>
 
-<h2> Preloading of the pattern class</h2>
-<p>Like 4against3.html, click the mouse to start an accelerating pattern. This demonstrates how to move the code for the IsoRhythm class to a separate .ck file which gets preloaded, simplifying the amount of code displayed here. The IsoRhythm class has been defined as a public class in the file isoRhythm.ck. By preloading that file the class becomes available for use in the live code below.
+<h2> Not crazed enough! So let's add some effects</h2>
+<p>What if your preloaded class just needs a small tweak? For example, adding some chorusing and reverb to the IsoRhythm class (after it gets preloaded). Use "extend" to create a subclass that inherits everything in the superclass and adds some tweaks.
+<br> The live code below respects the stereo panned output, keeping left and right signals separate all the way through the dac. It only adds effects to the first instrument and that in itself is enough to enhance the auditory streaming effect. For more craziness, the suggestion below applies chorus and reverb to all instruments -- but watch out for gains!
 </p>
 
+//////////////////////////////////////////////////// <br>
+suggestion (copy this whole and replace the live code) <br>   
 <pre><div id="editor2" class="ace_editor ace_hidpi ace-chuck">
+class IsoRev extends IsoRhythm {
+  2 => int nChans;
+  Chorus crs[nChans];
+  NRev rev[nChans];
+  for (0 => int i; i < nInsts; i++) 
+  for (0 => int ch; ch < nChans; ch++) {
+    stereo[i].chan(ch) => crs[ch] => rev[ch] => dac.chan(ch);
+  }
+  for (0 => int i; i < nInsts; i++) fm[i].gain(0.05);
+}
+IsoRev iso[3];
+spork ~iso[0].play(30::second, 0.97, 160::ms);
+1::second => now;
+spork ~iso[1].play(29::second, 0.96, 150::ms);
+1::second => now;
+spork ~iso[2].play(48::second, 0.95, 140::ms);
+30::second => now;
+IsoRev iso2[3];
+spork ~iso2[0].play(30::second, 0.97, 160::ms);
+1::second => now;
+spork ~iso2[1].play(29::second, 0.96, 150::ms);
+1::second => now;
+spork ~iso2[2].play(28::second, 0.95, 140::ms);
+30::second => now;
 </div></pre>
 //////////////////////////////////////////////////// <br>
 live code
-<pre><div id="editor1" class="ace_editor ace_hidpi ace-chuck">  
-// global int mouseX, mouseY; // mouse position is unused
-global Event playRiff;
-IsoRhythm iso; // instantiate an IsoRhythm object
-fun void mousePlay() {
-  while (true) {
-    playRiff => now;
-// howLong, accel, minInterOnsetInterval
-    spork ~ iso.play(15::second, 0.9, 40::ms);
+<pre><div id="editor1" class="ace_editor ace_hidpi ace-chuck"> 
+class IsoRev extends IsoRhythm {
+  2 => int nChans;
+  Chorus crs[nChans];
+  NRev rev[nChans];
+  for (0 => int ch; ch < nChans; ch++) {
+    stereo[0].chan(ch) => crs[ch] => rev[ch] => dac.chan(ch);
   }
+  for (0 => int i; i < nInsts; i++) fm[i].gain(0.1);
 }
-spork ~ mousePlay();
+IsoRev iso; // instantiate an IsoRev object
+spork ~ iso.play(15::second, 0.9, 40::ms);
+20::second => now;
 1::week => now;
 </div></pre>
 
