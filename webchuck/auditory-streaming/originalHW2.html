@@ -1,0 +1,228 @@
+<!-- 
+    based off of tutorials by Mike Mulshine et al
+    dependencies are in https://ccrma.stanford.edu/~cc/220a/webchuck220a/
+-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!--- make responsive for mobile devices -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<!--- Include the ACE editor and webchuck stuff -->
+  <link rel="stylesheet" href="https://ccrma.stanford.edu/~cc/220a/webchuck220a/css/editor.css">
+  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/ace.js" charset="utf-8"></script>
+  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/editor.js"></script>
+  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/defer.js"></script>
+  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/webchuck_host.js"></script>
+
+</head>
+
+<p>Homework 2 synthesizes an auditory streaming illusion.
+</p>
+
+<h2> HW2 </h2>
+<p>FM tones in a monophonic 4 against 3 pattern.</p>
+
+//////////////////////////////////////////////////// <br>
+suggestions (copy and replace any of these items in live code) <br>   
+<pre><div id="editor2" class="ace_editor ace_hidpi ace-chuck">
+</div></pre>
+//////////////////////////////////////////////////// <br>
+live code
+<pre><div id="editor1" class="ace_editor ace_hidpi ace-chuck">  
+  
+  
+// -------------------------------------------------------------
+// array to hold midi pitches (key numbers) 
+// these will be converted into the carrier frequencies
+[60, 62, 64, 65] @=> int keyNum[];
+
+// how many pitches are in the array
+keyNum.cap() => int nPitches;
+
+// -------------------------------------------------------------
+// against a cycle of a different length which we'll use to vary 
+// instrument parameters
+nPitches - 1 => int nInstruments;
+
+// arrays to hold modulation frequency, timing of modulation envelope, 
+// and timing/gain of carrier ADSRs
+// really, anything that we want to use to break the repeating pitches
+// into multiple streams
+
+// FMFS is a custom class, "FM From Scratch"
+// instantiate nInstruments instances of the class
+// make arrays for carrier amplitude & carrier amplitude envelope breakpoints, 
+// and modulation frequency ratio & index & modulation envelope breakpoints
+// ADSR stands for "Attack-Decay-Sustain-Release"
+FMFS fm[nInstruments];
+float carrierAmp[nInstruments];
+float carrierADSR[nInstruments][0]; // 2d array, second dimension will hold an array of float values for ADSR
+float pitchRatio[nInstruments];
+float modulationRatio[nInstruments];
+float modulationIndex[nInstruments];
+float modulatorADSR[nInstruments][0];
+for (0 => int i; i < nInstruments; i++) 
+{
+    [1.0,2.0,4.0] @=> pitchRatio;
+    1.5 + Math.pow(i,3.1) => modulationRatio[i];
+    Math.pow(i,3) => modulationIndex[i];
+    [1.0,.04,.5,.1] @=> carrierADSR[i];
+    [0.01,.4,1.0,.1] @=> modulatorADSR[i];
+    fm[i].out => dac.chan(i%2);
+    <<<"instrument",i,": pitchRatio", pitchRatio[i],"  modulationRatio", modulationRatio[i],"  modulationIndex", modulationIndex[i]>>>;
+}
+
+// -------------------------------------------------------------
+// global parameters
+
+// set a common note duration
+100::ms => dur duration;
+// initial interOnsetInterval (inverse of tempo)
+800::ms => dur interOnsetInterval;
+// accelerate to this smallest interOnsetInterval 
+160::ms => dur minInterOnsetInterval;
+// index for which pitch is next
+0 => int p;
+// index for which instrument is next                         
+0 => int i;
+
+
+// loop for 20 seconds
+now => time beg;
+beg + 20::second => time end;
+
+while (now < end) {
+    <<< "Pitch (",p,") keyNum =", keyNum[p], "\tInstrument(", i, ")">>>;
+    Std.mtof(keyNum[p]+12.0) => float carrierFreq;
+    // play the note
+    spork ~fm[i].playFM(duration, carrierFreq, pitchRatio[i], carrierADSR[i], modulationRatio[i], modulationIndex[i], modulatorADSR[i]);
+    // increment pitch and instrument
+    p++;
+    i++;
+    // cycle pitches through full array
+    nPitches %=> p;
+    // cycle instruments through full array
+    nInstruments %=> i;
+    
+    // advance time by interOnsetInterval and calculate the next interval
+    interOnsetInterval => now;
+    // accelerate
+    if (interOnsetInterval > minInterOnsetInterval) 
+      interOnsetInterval * 0.95 => interOnsetInterval;
+      else
+    // can't go faster than minInterOnsetInterval 
+        minInterOnsetInterval => interOnsetInterval;
+}
+
+// -------------------------------------------------------------
+// @class FMFS
+// fm implementation from scratch with envelopes
+// @author 2015 Madeline Huberth, 2022 version by CC
+class FMFS
+{ // two typical uses of the ADSR envelope unit generator...
+    Step unity => ADSR envM => blackhole; //...as a separate signal
+    SinOsc mod => blackhole;
+    SinOsc car => ADSR envC => Gain out;  //...as an inline modifier of a signal
+    car.gain(0.2);
+    float freq, index, ratio; // the parameters for our FM patch
+    fun void fm() // this patch is where the work is
+    {
+      while (true)
+      {
+        envM.last() * index => float currentIndex; // time-varying index
+        mod.gain( freq * currentIndex );    // modulator gain (index depends on frequency)
+        mod.freq( freq * ratio );           // modulator frequency (a ratio of frequency) 
+        car.freq( freq + mod.last() );      // frequency + modulator signal = FM 
+        1::samp => now;
+      }
+    }
+    spork ~fm(); // run the FM patch
+
+    // function to play a note on our FM patch
+    fun void playFM( dur length, float pitch, float pitchRatio, float carrierADSR[], float modulationRatio, float mGain, float modulatorADSR[] ) 
+    {
+        // set patch values
+        pitchRatio * pitch => freq;
+        modulationRatio => ratio;
+        mGain => index;
+       // run the envelopes
+        spork ~ playEnv( envC, length, carrierADSR );
+        spork ~ playEnv( envM, length, modulatorADSR );
+        length => now; // wait until the note is done
+    }
+
+    fun void playEnv( ADSR env, dur length, float adsrValues[] )
+    {
+        // set values for ADSR envelope depending on length
+        length * adsrValues[0] => dur A;
+        length * adsrValues[1] => dur D;
+        adsrValues[2] => float S;
+        length * adsrValues[3] => dur R;
+        
+        // set up ADSR envelope for this note
+        env.set( A, D, S, R );
+        // start envelope (attack is first segment)
+        env.keyOn();
+        // wait through A+D+S, before R
+        length-env.releaseTime() => now;
+        // trigger release segment
+        env.keyOff();
+        // wait for release to finish
+        env.releaseTime() => now;
+    }
+    fun void playFMtestTone() 
+    { 
+      out => dac; // connect output
+      playFM(0.9::second, 440.0, 1.0, [.01,.4,.5,.1], 1.0, 10.0, [.01,.4,1.0,.1]);
+      out =< dac; // disconnect output
+    }    
+}  // end of FMFS class definition 
+
+
+
+</div></pre>
+
+<p>
+<input id="startButton" type="button" value="Start" /> 
+<input id="stopButton" type="button" value="Stop" /> <br/><br/>
+</p>
+
+<script>
+    async function prep() {
+        //await preloadFilenames( serverFilesToPreload );
+        await startChuck();
+        await theChuckReady;
+        theChuck.removeLastCode();
+    }
+
+var editor1 = newChuckEditor("editor1");
+var editor2 = newChuckEditor("editor2");
+editor2.setOptions({
+  showLineNumbers: false
+  , showGutter: false
+});
+
+var prependCode = `//  none needed
+`;
+
+var startButton = document.getElementById( "startButton" );
+var stopButton = document.getElementById( "stopButton" );
+stopButton.disabled = true;
+startButton.style.height = '60px';
+startButton.style.width= '120px';
+stopButton.style.height = '60px';
+stopButton.style.width= '120px';
+
+startButton.addEventListener( "click", async function() {
+  await prep();
+  await theChuck.runCode(prependCode+editor1.getValue());
+  stopButton.disabled = false;
+  startButton.value = "Replace";
+  await new Promise(r => setTimeout(r, 100));
+//  getCsvDataLengthThenData(dataURL, dataFilter);
+});
+
+stopButton.addEventListener( "click", async function() {
+  await theChuck.removeLastCode();
+});
+</script>
