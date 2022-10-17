@@ -1,0 +1,147 @@
+<!-- 
+    based off of tutorials by Mike Mulshine et al
+    dependencies are in https://ccrma.stanford.edu/~cc/220a/webchuck220a/
+-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!--- make responsive for mobile devices -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<!--- Include the ACE editor and webchuck stuff -->
+  <link rel="stylesheet" href="https://ccrma.stanford.edu/~cc/220a/webchuck220a/css/editor.css">
+  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/ace.js" charset="utf-8"></script>
+  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/editor.js"></script>
+  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/defer.js"></script>
+  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/webchuck_host.js"></script>
+
+</head>
+
+<p>Homework 2 is about synthesizing an auditory streaming illusion using FM tones.
+</p>
+
+<h2> FM demo -- algorithmic control of parameters </h2>
+<p>This page plays little 4-note riffs from a mouse click. See FMdemo, FMdemo2, FMdemo3 for the timbre space used here. Mouse position moves around in it. 
+<br> Uses MIDI keynum values to specify pitch with the built-in function Std.mtof(<keynum>) 
+</p>
+//////////////////////////////////////////////////// <br>
+suggestions for longer riffs and increasing loudness
+<pre><div id="editor2" class="ace_editor ace_hidpi ace-chuck">
+  for (0 => int i; i < 40; i++) 
+  Std.dbtorms( 60 + i ) => c.gain; // function to convert dB to amplitude
+
+</div></pre>
+//////////////////////////////////////////////////// <br>
+live code
+<pre><div id="editor1" class="ace_editor ace_hidpi ace-chuck">  
+global int mouseX, mouseY;
+global Event playRiff;
+
+SinOsc c => ADSR cEnv => dac;  //...as an inline modifier of a signal
+SinOsc m => blackhole;
+Step unity => ADSR mEnv => blackhole; //...as a separate signal
+440 => float cf;
+550 => float mf => m.freq;
+200 => float index;
+// set A, D, S, and R
+// (note: A, D, R are durations; S is a number between 0 and 1)
+    cEnv.set( 100::ms, 8::ms, .25, 300::ms );
+    mEnv.set( 20::ms, 80::ms, .17, 200::ms );
+
+fun void runFM() {
+  while( true ) {
+    cf + (mEnv.last() * index * m.last()) => c.freq;
+    1::samp => now;
+  }
+}
+spork ~ runFM();
+fun void riffPlay() {
+  for (0 => int i; i < 4; i++) {
+    Std.mtof( 60 + i ) => cf;
+    cEnv.keyOn();
+    mEnv.keyOn();
+    .1::second => now;
+    cEnv.keyOff();
+    mEnv.keyOff();
+    .1::second => now;
+  }
+}
+fun void mousePlay() {
+  while (true) {
+    playRiff => now;
+spork ~ riffPlay();
+  }
+}
+spork ~ mousePlay();
+fun void RespondToMouseMovement() {
+  while( true ) {
+    mouseX*0.5 => m.freq;
+    mouseY*0.5 => index;
+    10::ms => now;
+  }
+}
+spork ~ RespondToMouseMovement();
+1::week => now;
+</div></pre>
+
+<p>
+<input id="startButton" type="button" value="Start" /> 
+<input id="stopButton" type="button" value="Stop" /> <br/><br/>
+</p>
+
+<script>
+    async function prep() {
+        await startChuck();
+        await theChuckReady;
+        theChuck.removeLastCode();
+    }
+
+var editor1 = newChuckEditor("editor1");
+var editor2 = newChuckEditor("editor2");
+editor2.setOptions({
+  showLineNumbers: false
+  , showGutter: false
+});
+
+var prependCode = `//  none needed
+`;
+
+var startButton = document.getElementById( "startButton" );
+var stopButton = document.getElementById( "stopButton" );
+stopButton.disabled = true;
+startButton.style.height = '60px';
+startButton.style.width= '120px';
+stopButton.style.height = '60px';
+stopButton.style.width= '120px';
+
+startButton.addEventListener( "click", async function() {
+  await prep();
+  await theChuck.runCode(prependCode+editor1.getValue());
+  stopButton.disabled = false;
+  startButton.value = "Replace";
+  await new Promise(r => setTimeout(r, 100));
+});
+
+stopButton.addEventListener( "click", async function() {
+  await theChuck.removeLastCode();
+});
+
+// mouse interface
+var clickOn = true;
+theChuckReady.then( function() {
+  if( window.Event ) { 
+    document.captureEvents( Event.MOUSEMOVE );
+  }
+  document.onmousemove = function( e )  {
+      var x = (window.Event) ? e.pageX : event.clientX + (document.documentElement.scrollLeft ?     
+        document.documentElement.scrollLeft : document.body.scrollLeft);
+      var y = (window.Event) ? e.pageY : event.clientY + (document.documentElement.scrollTop ? 
+        document.documentElement.scrollTop : document.body.scrollTop);
+      theChuck.setInt( "mouseX", x );
+      theChuck.setInt( "mouseY", y );
+    }
+  document.onmousedown = function( e )  {
+        theChuck.broadcastEvent("playRiff");
+  }
+});
+
+</script>
