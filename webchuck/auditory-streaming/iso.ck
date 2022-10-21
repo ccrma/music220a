@@ -10,7 +10,7 @@ public class ISO
 [60, 62, 64, 65] @=> int keyNum[];
 
 // how many pitches are in the array
-keyNum.cap() => int nPitches;
+keyNum.size() => int nPitches;
 
 // -------------------------------------------------------------
 // against a cycle of a different length which we'll use to vary 
