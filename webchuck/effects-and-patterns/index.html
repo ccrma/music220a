@@ -8,69 +8,67 @@
 <!--- make responsive for mobile devices -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
 <!--- Include the ACE editor and webchuck stuff -->
-  <link rel="stylesheet" href="https://ccrma.stanford.edu/~cc/220a/webchuck220a/css/editor.css">
-  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/ace.js" charset="utf-8"></script>
-  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/editor.js"></script>
-  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/defer.js"></script>
-  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/webchuck_host.js"></script>
+  <link rel="stylesheet" href="https://ccrma.stanford.edu/~cc/220a/webchuck220aStereoRecorder/css/editor.css">
+  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220aStereoRecorder/js/ace.js" charset="utf-8"></script>
+  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220aStereoRecorder/js/editor.js"></script>
+  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220aStereoRecorder/js/defer.js"></script>
+  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220aStereoRecorder/js/webchuck_host_recorder.js"></script>
 
 </head>
 
-<p>Homework 2 synthesizes an auditory streaming illusion.
+<p>Homework 3 - audio effects and pattern generators.
 </p>
 
-<h2> HW2 </h2>
-<p>Here is a simple ChucK program that plays an FM tone. It preloads the custom public FMFS class from the file FMFS.ck and uses it in the code below. </p>
+<h2> Test adc (straight wire)</h2>
+<p>Click start and the browser should ask for mic permission. The chuck script connects the adc left channel is to the dac left. The mic input should be heard at the sound output. Feedback warning! There may be a "remember this decision" option for allowing this example access to the mic in the future. 
+</p>
 
-//////////////////////////////////////////////////// <br>
-suggestions (copy and replace any of these items in live code) <br>   
 <pre><div id="editor2" class="ace_editor ace_hidpi ace-chuck">
-[.01,.4,.5,.1] @=> float carrierADSR;
-[.01,.4,1.0,.1] @=> float modulatorADSR;
-playFM( 1::second, 440.0, 1.0, carrierADSR, 1.0, 10.0, modulatorADSR;
 </div></pre>
 //////////////////////////////////////////////////// <br>
 live code
 <pre><div id="editor1" class="ace_editor ace_hidpi ace-chuck">  
-global int mouseX, mouseY;
+adc.chan(0) => Gain inGainL => ResonZ f => dac.chan(0);
+adc.chan(0) => dac.chan(1);
+inGainL.gain(50.0);
+f => dac.chan(1);
 
-FMFS fm; // instantiate an FMFS
-fm.out => dac;
-fm.car.gain(1.0);
-
-// arguments are duration, pitch, pitch ratio, carrier envelope, modulator ratio, index, modulator envelope
-[.01,.4,1.0,.1] @=> float carrierADSR[];
-[.001,.2,1.0,.1] @=> float modulatorADSR[];
-spork ~fm.playFM( 2000::second, 440.0, 1.0, carrierADSR, 1.0, 10.0, modulatorADSR);
-
-// frequency is mapped to the x position of the mouse
-fun void RespondToMouseMovement() {
-  while( true ) {
-//    1000 + 0.3 * mouseX => fm.freq;
-    mouseX/100.0 => fm.index;
-    mouseY/100.0 => fm.ratio;
-//    <<< fm.index >>>; // 0 - 1126
-    10::ms => now;
-  }
-}
-spork ~ RespondToMouseMovement();
-2000::second => now;
-
-</div></pre>
+// set filter Q
+5 => f.Q;
+while( true )
+{
+    // sweep the cutoff
+    1200 + Std.fabs(Math.sin(4.0 * (now/second))) * 400 => f.freq;
+    // advance time
+    1::samp => now;
+}</div></pre>
 
 <p>
 <input id="startButton" type="button" value="Start" /> 
-<input id="stopButton" type="button" value="Stop" /> <br/><br/>
+<input id="stopButton" type="button" value="Stop" /><br/><br/>
 </p>
+<div class="pure-u-3-4" id="audio-download-link">
+</div>
 
 <script>
     var preloaded = false;
     var serverFilesToPreload = [
         {
-            serverFilename: 'https://ccrma.stanford.edu/~cc/220a/hw2/FMFS.ck',
-            virtualFilename: 'FMFS.ck'
+            serverFilename: 'https://ccrma.stanford.edu/~cc/220a/hw2/isoRhythm.ck',
+            virtualFilename: 'isoRhythm.ck'
         }
     ];
+    var adc;
+    var connectAudioInput = function() {
+      navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+        .then( function( stream ) {
+          adc = audioContext.createMediaStreamSource( stream );
+          adc.connect( theChuck );
+        });
+    }
+    var disconnectAudioInput = function() {
+      adc.disconnect( theChuck );
+    }
     async function prep() {
         if (!preloaded) {
           await preloadFilenames( serverFilesToPreload );
@@ -79,9 +77,10 @@ spork ~ RespondToMouseMovement();
         await theChuckReady;
         theChuck.removeLastCode();
         if (!preloaded) {
-          await theChuck.runFile("FMFS.ck");
+          await theChuck.runFile("isoRhythm.ck");
           preloaded = true;
         }
+        connectAudioInput();
     }
 
 var editor1 = newChuckEditor("editor1");
@@ -108,12 +107,19 @@ startButton.addEventListener( "click", async function() {
   stopButton.disabled = false;
   startButton.value = "Replace";
   await new Promise(r => setTimeout(r, 100));
+  stereoRecorder.start();
 });
 
 stopButton.addEventListener( "click", async function() {
   await theChuck.removeLastCode();
+  disconnectAudioInput();
+  stereoRecorder.stop();
+  audioContext.suspend();
+  createDownloadLink();
 });
 
+// mouse interface
+var clickOn = true;
 theChuckReady.then( function() {
   if( window.Event ) { 
     document.captureEvents( Event.MOUSEMOVE );
@@ -123,9 +129,11 @@ theChuckReady.then( function() {
         document.documentElement.scrollLeft : document.body.scrollLeft);
       var y = (window.Event) ? e.pageY : event.clientY + (document.documentElement.scrollTop ? 
         document.documentElement.scrollTop : document.body.scrollTop);
-      theChuck.setInt( "mouseX", x );
-      theChuck.setInt( "mouseY", y );
+//      theChuck.setInt( "mouseX", x );
+//      theChuck.setInt( "mouseY", y );
     }
+  document.onmousedown = function( e )  {
+        theChuck.broadcastEvent("playRiff");
+  }
 });
-
 </script>

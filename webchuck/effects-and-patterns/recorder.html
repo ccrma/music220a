@@ -8,52 +8,47 @@
 <!--- make responsive for mobile devices -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
 <!--- Include the ACE editor and webchuck stuff -->
-  <link rel="stylesheet" href="https://ccrma.stanford.edu/~cc/220a/webchuck220a/css/editor.css">
-  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/ace.js" charset="utf-8"></script>
-  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/editor.js"></script>
-  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/defer.js"></script>
-  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/webchuck_host.js"></script>
+  <link rel="stylesheet" href="https://ccrma.stanford.edu/~cc/220a/webchuck220aStereoRecorder/css/editor.css">
+  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220aStereoRecorder/js/ace.js" charset="utf-8"></script>
+  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220aStereoRecorder/js/editor.js"></script>
+  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220aStereoRecorder/js/defer.js"></script>
+  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220aStereoRecorder/js/webchuck_host_recorder.js"></script>
 
 </head>
 
-<p>Homework 2 is about synthesizing an auditory streaming illusion using FM tones.
+<p>Homework 3 - audio effects and pattern generators.
 </p>
 
-<h2> Play it (the entire piece...)</h2>
-<p>Just click the start button. The IsoRhythm class gets preloaded, a single instance of it gets played once. Then experiment with the suggestion below. The code creates a group of multiple instances that play as overlapping layers (polyphony) and then creates another group.
+<h2> Test adc (straight wire)</h2>
+<p>Click start and the browser should ask for mic permission. The chuck script connects the adc left channel is to the dac left. The mic input should be heard at the sound output. Feedback warning! There may be a "remember this decision" option for allowing this example access to the mic in the future. 
 </p>
 
-//////////////////////////////////////////////////// <br>
-suggestion (copy this whole and replace the live code) <br>   
 <pre><div id="editor2" class="ace_editor ace_hidpi ace-chuck">
-IsoRhythm iso[3];
-spork ~iso[0].play(30::second, 0.97, 160::ms);
-1::second => now;
-spork ~iso[1].play(29::second, 0.96, 150::ms);
-1::second => now;
-spork ~iso[2].play(48::second, 0.95, 140::ms);
-30::second => now;
-IsoRhythm iso2[3];
-spork ~iso2[0].play(30::second, 0.97, 160::ms);
-1::second => now;
-spork ~iso2[1].play(29::second, 0.96, 150::ms);
-1::second => now;
-spork ~iso2[2].play(28::second, 0.95, 140::ms);
-30::second => now;
 </div></pre>
 //////////////////////////////////////////////////// <br>
 live code
 <pre><div id="editor1" class="ace_editor ace_hidpi ace-chuck">  
-IsoRhythm iso; // instantiate an IsoRhythm object
-spork ~ iso.play(15::second, 0.9, 40::ms);
-20::second => now;
-1::week => now;
-</div></pre>
+adc.chan(0) => Gain inGainL => ResonZ f => dac.chan(0);
+adc.chan(0) => dac.chan(1);
+inGainL.gain(50.0);
+f => dac.chan(1);
+
+// set filter Q
+5 => f.Q;
+while( true )
+{
+    // sweep the cutoff
+    1200 + Std.fabs(Math.sin(4.0 * (now/second))) * 400 => f.freq;
+    // advance time
+    1::samp => now;
+}</div></pre>
 
 <p>
 <input id="startButton" type="button" value="Start" /> 
-<input id="stopButton" type="button" value="Stop" /> <br/><br/>
+<input id="stopButton" type="button" value="Stop" /><br/><br/>
 </p>
+<div class="pure-u-3-4" id="audio-download-link">
+</div>
 
 <script>
     var preloaded = false;
@@ -63,6 +58,17 @@ spork ~ iso.play(15::second, 0.9, 40::ms);
             virtualFilename: 'isoRhythm.ck'
         }
     ];
+    var adc;
+    var connectAudioInput = function() {
+      navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+        .then( function( stream ) {
+          adc = audioContext.createMediaStreamSource( stream );
+          adc.connect( theChuck );
+        });
+    }
+    var disconnectAudioInput = function() {
+      adc.disconnect( theChuck );
+    }
     async function prep() {
         if (!preloaded) {
           await preloadFilenames( serverFilesToPreload );
@@ -74,6 +80,7 @@ spork ~ iso.play(15::second, 0.9, 40::ms);
           await theChuck.runFile("isoRhythm.ck");
           preloaded = true;
         }
+        connectAudioInput();
     }
 
 var editor1 = newChuckEditor("editor1");
@@ -100,10 +107,15 @@ startButton.addEventListener( "click", async function() {
   stopButton.disabled = false;
   startButton.value = "Replace";
   await new Promise(r => setTimeout(r, 100));
+  stereoRecorder.start();
 });
 
 stopButton.addEventListener( "click", async function() {
   await theChuck.removeLastCode();
+  disconnectAudioInput();
+  stereoRecorder.stop();
+  audioContext.suspend();
+  createDownloadLink();
 });
 
 // mouse interface
@@ -124,5 +136,4 @@ theChuckReady.then( function() {
         theChuck.broadcastEvent("playRiff");
   }
 });
-
 </script>
