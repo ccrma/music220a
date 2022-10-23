@@ -28,17 +28,14 @@
 //////////////////////////////////////////////////// <br>
 live code
 <pre><div id="editor1" class="ace_editor ace_hidpi ace-chuck">  
-adc.chan(0) => Gain inGainL => ResonZ f => dac.chan(0);
-adc.chan(0) => dac.chan(1);
-inGainL.gain(50.0);
-f => dac.chan(1);
+adc.chan(0)=> ResonZ f => dac;
 
 // set filter Q
-5 => f.Q;
+10 => f.Q;
 while( true )
 {
     // sweep the cutoff
-    1200 + Std.fabs(Math.sin(4.0 * (now/second))) * 400 => f.freq;
+    100 + Std.fabs(Math.sin(4.0 * (now/second))) * 2000 => f.freq;
     // advance time
     1::samp => now;
 }</div></pre>

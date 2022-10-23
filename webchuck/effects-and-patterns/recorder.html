@@ -18,37 +18,25 @@
 
 <p>Homework 3 - audio effects and pattern generators.
 </p>
-
-<h2> Test adc (straight wire)</h2>
-<p>Click start and the browser should ask for mic permission. The chuck script connects the adc left channel is to the dac left. The mic input should be heard at the sound output. Feedback warning! There may be a "remember this decision" option for allowing this example access to the mic in the future. 
+<h2> Test adc and recording</h2>
+<p>Click start and the browser should ask for mic permission. The live code example connects the adc left channel to both dac channels. The mic input should be heard at the sound output. (Feedback warning!) Click record when ready and stop to finish recording. Right-click on the link that magically appears and save the recording. To go again, refresh the page.
 </p>
-
 <pre><div id="editor2" class="ace_editor ace_hidpi ace-chuck">
 </div></pre>
 //////////////////////////////////////////////////// <br>
 live code
 <pre><div id="editor1" class="ace_editor ace_hidpi ace-chuck">  
-adc.chan(0) => Gain inGainL => ResonZ f => dac.chan(0);
-adc.chan(0) => dac.chan(1);
-inGainL.gain(50.0);
-f => dac.chan(1);
-
-// set filter Q
-5 => f.Q;
-while( true )
-{
-    // sweep the cutoff
-    1200 + Std.fabs(Math.sin(4.0 * (now/second))) * 400 => f.freq;
-    // advance time
-    1::samp => now;
-}</div></pre>
+adc.chan(0) => dac;
+1::week => now;
+</div></pre>
 
 <p>
 <input id="startButton" type="button" value="Start" /> 
 <input id="stopButton" type="button" value="Stop" /><br/><br/>
+<input id="recordButton" type="button" value="Start Recording" /><br/><br/>
 </p>
 <div class="pure-u-3-4" id="audio-download-link">
-</div>
+output is a stereo .wav file
 
 <script>
     var preloaded = false;
@@ -95,6 +83,7 @@ var prependCode = `//  none needed
 
 var startButton = document.getElementById( "startButton" );
 var stopButton = document.getElementById( "stopButton" );
+var recordButton = document.getElementById( "recordButton" );
 stopButton.disabled = true;
 startButton.style.height = '60px';
 startButton.style.width= '120px';
@@ -105,9 +94,10 @@ startButton.addEventListener( "click", async function() {
   await prep();
   await theChuck.runCode(prependCode+editor1.getValue());
   stopButton.disabled = false;
-  startButton.value = "Replace";
+  startButton.value = "Started";
+  startButton.disabled = true;
+  startButton.style.background='White';  
   await new Promise(r => setTimeout(r, 100));
-  stereoRecorder.start();
 });
 
 stopButton.addEventListener( "click", async function() {
@@ -116,6 +106,15 @@ stopButton.addEventListener( "click", async function() {
   stereoRecorder.stop();
   audioContext.suspend();
   createDownloadLink();
+  recordButton.style.background='White';  
+  recordButton.disabled = true;
+});
+
+recordButton.addEventListener( "click", async function() {
+  record();
+  recordButton.style.background='Coral';  
+  recordButton.value = "Recording";
+  stereoRecorder.start();
 });
 
 // mouse interface
