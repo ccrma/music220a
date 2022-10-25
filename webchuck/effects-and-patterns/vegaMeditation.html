@@ -16,20 +16,76 @@
 
 </head>
 
-<p>Homework 3 - audio effects and pattern generators.
+<p>Chris Vega - Meditation algorithm (2007).
 </p>
-<h2> Test adc and recording</h2>
-<p>Click start and the browser should ask for mic permission. The live code example connects the adc left channel to both dac channels. The mic input should be heard at the sound output. (Feedback warning!) Click record when ready and stop to finish recording. Right-click on the link that magically appears and save the recording. To go again, refresh the page.
-[note: audio input quality may sound better using Chromium-based browsers]
+<h2>Meditation</h2>
+<p>With Pauline Oliveros' encouragement, Chris Vega concocted an algorithmic replica of her Tuning Mediation which we had performed with her in class.
 </p>
 <pre><div id="editor2" class="ace_editor ace_hidpi ace-chuck">
 </div></pre>
 //////////////////////////////////////////////////// <br>
 live code
 <pre><div id="editor1" class="ace_editor ace_hidpi ace-chuck">  
-adc.chan(0) => dac;
-1::week => now;
-</div></pre>
+Bowed a => NRev re => PitShift pit => pan2 p =>  dac;
+Bowed b => NRev rev => PitShift pits => pan2 q => dac;
+Bowed c => NRev reve => PitShift pitsh => pan2 r => dac;
+Bowed d => NRev rever => PitShift pitshi => pan2 s => dac;
+Bowed e => NRev reverb => PitShift pitshif => pan2 t => dac;
+
+-1 => p.pan;
+-.5 => r.pan;
+0 => t.pan;
+.5 => s.pan;
+1 => q.pan;
+
+[0,1,2,3,4,5,6,7,8,9,10,11,12] @=> int scale[]; //sequence data
+
+for (0=>int i; 10; i++) 
+{
+Std.rand2f (.5, 1 ) => re.mix;
+Std.rand2f (.5, 1 ) => rev.mix;
+Std.rand2f (.5, 1 ) => reve.mix;
+Std.rand2f (.5, 1 ) => rever.mix;
+Std.rand2f (.5, 1 ) => reverb.mix;
+    <<< "---", "" >>>;
+    <<< "i:", i >>>;  
+
+    Std.rand2f( 0, .2 ) => a.vibratoFreq;
+    Std.rand2f( 0, .2 ) => a.vibratoGain;
+    Std.rand2f( 0, .2 ) => b.vibratoFreq;
+    Std.rand2f( 0, .2 ) => b.vibratoGain;
+    Std.rand2f( 0, .2 ) => c.vibratoFreq;
+    Std.rand2f( 0, .2 ) => c.vibratoGain;
+    Std.rand2f( 0, .2 ) => d.vibratoFreq;
+    Std.rand2f( 0, .2 ) => d.vibratoGain;
+    Std.rand2f( 0, .2 ) => e.vibratoFreq;
+    Std.rand2f( 0, .2 ) => e.vibratoGain;
+  Std.mtof( 48 + scale[ Std.rand2 (0,12) ] ) => a.freq => float ass; //set the note
+  Std.mtof( 48 + scale[ Std.rand2 (0,12) ] ) => b.freq => float bass;//set the note
+  Std.mtof( 48 + scale[ Std.rand2 (0,12) ] ) => c.freq => float cash; //set the note
+  Std.mtof( 48 + scale[ Std.rand2 (0,12) ] ) => d.freq => float dash; //set the note
+  Std.mtof( 48 + scale[ Std.rand2 (0,12) ] ) => e.freq => float er; //set the note
+      // print
+    <<< "---", "" >>>;
+    <<< "a:", a.freq() >>>;
+
+    
+  1 => a.noteOn;
+  if (i > 2) 1 => b.noteOn;
+  if (i > 4) .5 => c.noteOn;
+  if (i > 6) .5 => d.noteOn;
+  if (i > 8) 1 => e.noteOn;
+  
+  Std.rand2f (0,.9) => float num;
+  if (num < .3) std.rand2f(8,12)::second => now; //compute audio  
+  if (num > .6) std.rand2f(4,8)::second => now; //compute audio
+  else bass => a.freq;
+  Std.rand2f (0,.9) => float numb;
+  if (numb < .3) cash => b.freq;
+  if (numb > .6) dash => c.freq;
+  else er => d.freq;
+
+} </div></pre>
 
 <p>
 <input id="startButton" type="button" value="Start" /> 
@@ -40,14 +96,15 @@ adc.chan(0) => dac;
 output is a stereo .wav file
 
 <script>
-    var preloaded = false;
+    var adc = false; // enable browser mic input
+    var recording = false; // whether record button was pushed
+    var preloaded = false; // whether files were preloaded already
     var serverFilesToPreload = [
         {
             serverFilename: 'https://ccrma.stanford.edu/~cc/220a/hw2/isoRhythm.ck',
             virtualFilename: 'isoRhythm.ck'
         }
     ];
-    var adc;
     var connectAudioInput = function() {
       navigator.mediaDevices.getUserMedia({ audio: true, video: false })
         .then( function( stream ) {
@@ -69,7 +126,7 @@ output is a stereo .wav file
           await theChuck.runFile("isoRhythm.ck");
           preloaded = true;
         }
-        connectAudioInput();
+        if (adc) connectAudioInput(); else adc = null;
     }
 
 var editor1 = newChuckEditor("editor1");
@@ -103,10 +160,10 @@ startButton.addEventListener( "click", async function() {
 
 stopButton.addEventListener( "click", async function() {
   await theChuck.removeLastCode();
-  disconnectAudioInput();
+  if (adc != null) disconnectAudioInput();
   stereoRecorder.stop();
   audioContext.suspend();
-  createDownloadLink();
+  if (recording) createDownloadLink();
   recordButton.style.background='White';  
   recordButton.disabled = true;
 });
@@ -116,6 +173,7 @@ recordButton.addEventListener( "click", async function() {
   recordButton.style.background='Coral';  
   recordButton.value = "Recording";
   stereoRecorder.start();
+  recording = true;
 });
 
 // mouse interface

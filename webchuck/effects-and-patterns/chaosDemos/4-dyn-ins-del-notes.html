@@ -18,44 +18,90 @@
 
 <p>Homework 3 - audio effects and pattern generators.
 </p>
-
-<h2> Test adc (straight wire)</h2>
-<p>Click start and the browser should ask for mic permission. The chuck script connects the adc left channel is to the dac left. The mic input should be heard at the sound output. Feedback warning! There may be a "remember this decision" option for allowing this example access to the mic in the future. 
+<h2>Demo of dynamical system notes and tones</h2>
+<p>Combine demos 1 & 3. Note pitches are varied but "clarinet" tonal quality is held constant.
 </p>
-
 <pre><div id="editor2" class="ace_editor ace_hidpi ace-chuck">
 </div></pre>
 //////////////////////////////////////////////////// <br>
 live code
 <pre><div id="editor1" class="ace_editor ace_hidpi ace-chuck">  
-adc.chan(0)=> ResonZ f => dac;
-
-// set filter Q
-10 => f.Q;
-while( true )
+fun float map( float  x, float  a0)
 {
-    // sweep the cutoff
-    100 + Std.fabs(Math.sin(4.0 * (now/second))) * 2000 => f.freq;
-    // advance time
-    1::samp => now;
+	-0.7 => float a1;
+	2.0 => float a2;
+	return a0 + (a1 * x) + (a2 * x * x);
+}
+
+class MapTick
+{
+
+	Gain x => Gain x1;
+	x => Gain x2;
+	x => Gain x2b => x2;
+	3 => x1.op; 
+	3 => x2.op;
+// clarinet-like pitches, envelope moved to map
+	Step c => Envelope e => Gain a0 => Gain out;
+	c => Gain a1 => x1 => out;
+	c => Gain a2 => x2 => out;
+		
+	out => dac => DelayL d => OneZero lpf => Gain loop => x;
+
+	fun void startNote( float f, float a)
+	{
+		1.0::second/f => d.delay;
+		a => a0.gain;
+		-0.7 => a1.gain;
+		2.0 => a2.gain;
+		0.95 => loop.gain;
+		150::ms => dur t => e.duration;
+		e.keyOn();
+	}
+	fun void stopNote()
+	{
+		0.0 => loop.gain;
+		e.keyOff();
+	}
+}
+MapTick ins;
+15 => int numRiffs;
+
+for( int ctr; ctr < numRiffs; ctr++ )
+{
+	(((ctr)$float)/(numRiffs-1$float)) => float ramp;
+	0.1 => float x;
+	-0.3 + (ramp * (-0.7 - -0.3)) => float a0;
+    	<<< "a0:", a0 >>>;
+	for( int i; i < 10; i++ )
+	{
+		map(x, a0) => x;
+		Math.min (Math.max ( (440.0 + (x * 220.0)), 50.0), 4000.0) => float freq;
+		ins.startNote(freq, -0.4);
+	        100::ms => now;
+		ins.stopNote();
+	}
+	500::ms => now;
 }</div></pre>
 
 <p>
 <input id="startButton" type="button" value="Start" /> 
 <input id="stopButton" type="button" value="Stop" /><br/><br/>
+<input id="recordButton" type="button" value="Start Recording" /><br/><br/>
 </p>
 <div class="pure-u-3-4" id="audio-download-link">
-</div>
+output is a stereo .wav file
 
 <script>
-    var preloaded = false;
+    var adc = false; // enable browser mic input
+    var recording = false; // whether record button was pushed
+    var preloaded = false; // whether files were preloaded already
     var serverFilesToPreload = [
         {
             serverFilename: 'https://ccrma.stanford.edu/~cc/220a/hw2/isoRhythm.ck',
             virtualFilename: 'isoRhythm.ck'
         }
     ];
-    var adc;
     var connectAudioInput = function() {
       navigator.mediaDevices.getUserMedia({ audio: true, video: false })
         .then( function( stream ) {
@@ -77,7 +123,7 @@ while( true )
           await theChuck.runFile("isoRhythm.ck");
           preloaded = true;
         }
-        connectAudioInput();
+        if (adc) connectAudioInput(); else adc = null;
     }
 
 var editor1 = newChuckEditor("editor1");
@@ -92,6 +138,7 @@ var prependCode = `//  none needed
 
 var startButton = document.getElementById( "startButton" );
 var stopButton = document.getElementById( "stopButton" );
+var recordButton = document.getElementById( "recordButton" );
 stopButton.disabled = true;
 startButton.style.height = '60px';
 startButton.style.width= '120px';
@@ -102,17 +149,28 @@ startButton.addEventListener( "click", async function() {
   await prep();
   await theChuck.runCode(prependCode+editor1.getValue());
   stopButton.disabled = false;
-  startButton.value = "Replace";
+  startButton.value = "Started";
+  startButton.disabled = true;
+  startButton.style.background='White';  
   await new Promise(r => setTimeout(r, 100));
-  stereoRecorder.start();
 });
 
 stopButton.addEventListener( "click", async function() {
   await theChuck.removeLastCode();
-  disconnectAudioInput();
+  if (adc != null) disconnectAudioInput();
   stereoRecorder.stop();
   audioContext.suspend();
-  createDownloadLink();
+  if (recording) createDownloadLink();
+  recordButton.style.background='White';  
+  recordButton.disabled = true;
+});
+
+recordButton.addEventListener( "click", async function() {
+  record();
+  recordButton.style.background='Coral';  
+  recordButton.value = "Recording";
+  stereoRecorder.start();
+  recording = true;
 });
 
 // mouse interface
