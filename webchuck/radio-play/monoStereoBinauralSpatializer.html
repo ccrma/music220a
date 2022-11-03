@@ -77,8 +77,13 @@ output is a stereo .wav file
         }
     ];
     var adc = null;
+    const constraints = {'video': false, 'audio': {
+        'echoCancellation': false,
+        'autoGainControl': false,
+        'noiseSuppression': false,
+    }};
     var connectAudioInput = function() {
-      navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+      navigator.mediaDevices.getUserMedia(constraints)
         .then( function( stream ) {
           adc = audioContext.createMediaStreamSource( stream );
           adc.connect( theChuck );
