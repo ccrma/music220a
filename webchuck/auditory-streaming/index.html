@@ -16,21 +16,34 @@
 
 </head>
 
-<p>Homework 2 synthesizes an auditory streaming illusion.
+<p>Homework 2 is about synthesizing an auditory streaming illusion using FM tones.
 </p>
 
-<h2> HW2 </h2>
-<p>FM tones in a monophonic 4 against 3 pattern.</p>
+<h2> Play it (the entire piece...)</h2>
+<p>Just click the start button. The IsoRhythm class gets preloaded, a single instance of it gets played once. Then experiment with the suggestion below. The code creates a group of multiple instances that play as overlapping layers (polyphony) and then creates another group.
+</p>
 
 //////////////////////////////////////////////////// <br>
-suggestions (copy and replace any of these items in live code) <br>   
+suggestion (copy this whole and replace the live code) <br>   
 <pre><div id="editor2" class="ace_editor ace_hidpi ace-chuck">
+IsoRhythm iso[3];
+spork ~iso[0].play(30::second, 0.97, 160::ms);
+1::second => now;
+spork ~iso[1].play(29::second, 0.96, 150::ms);
+1::second => now;
+spork ~iso[2].play(48::second, 0.95, 140::ms);
+30::second => now;
+IsoRhythm iso2[3];
+spork ~iso2[0].play(30::second, 0.97, 160::ms);
+1::second => now;
+spork ~iso2[1].play(29::second, 0.96, 150::ms);
+1::second => now;
+spork ~iso2[2].play(28::second, 0.95, 140::ms);
+30::second => now;
 </div></pre>
 //////////////////////////////////////////////////// <br>
 live code
 <pre><div id="editor1" class="ace_editor ace_hidpi ace-chuck">  
-  
-  
 // -------------------------------------------------------------
 // array to hold midi pitches (key numbers) 
 // these will be converted into the carrier frequencies
@@ -188,11 +201,24 @@ class FMFS
 </p>
 
 <script>
+    var preloaded = false;
+    var serverFilesToPreload = [
+        {
+            serverFilename: 'https://ccrma.stanford.edu/~cc/220a/hw2/isoRhythm.ck',
+            virtualFilename: 'isoRhythm.ck'
+        }
+    ];
     async function prep() {
-        //await preloadFilenames( serverFilesToPreload );
+        if (!preloaded) {
+          await preloadFilenames( serverFilesToPreload );
+        }
         await startChuck();
         await theChuckReady;
         theChuck.removeLastCode();
+        if (!preloaded) {
+          await theChuck.runFile("isoRhythm.ck");
+          preloaded = true;
+        }
     }
 
 var editor1 = newChuckEditor("editor1");
@@ -219,10 +245,29 @@ startButton.addEventListener( "click", async function() {
   stopButton.disabled = false;
   startButton.value = "Replace";
   await new Promise(r => setTimeout(r, 100));
-//  getCsvDataLengthThenData(dataURL, dataFilter);
 });
 
 stopButton.addEventListener( "click", async function() {
   await theChuck.removeLastCode();
 });
+
+// mouse interface
+var clickOn = true;
+theChuckReady.then( function() {
+  if( window.Event ) { 
+    document.captureEvents( Event.MOUSEMOVE );
+  }
+  document.onmousemove = function( e )  {
+      var x = (window.Event) ? e.pageX : event.clientX + (document.documentElement.scrollLeft ?     
+        document.documentElement.scrollLeft : document.body.scrollLeft);
+      var y = (window.Event) ? e.pageY : event.clientY + (document.documentElement.scrollTop ? 
+        document.documentElement.scrollTop : document.body.scrollTop);
+//      theChuck.setInt( "mouseX", x );
+//      theChuck.setInt( "mouseY", y );
+    }
+  document.onmousedown = function( e )  {
+        theChuck.broadcastEvent("playRiff");
+  }
+});
+
 </script>
