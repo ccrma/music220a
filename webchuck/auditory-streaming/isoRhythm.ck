@@ -3,7 +3,7 @@ public class IsoRhythm {
 // these will be converted into the carrier frequencies
   [60, 62, 64, 65] @=> int keyNum[];
 // how many pitches are in the array
-  keyNum.cap() => int nPitches;
+  keyNum.size() => int nPitches;
   3 => int nInsts;
   FM fm[nInsts];
   new FMVoices @=> fm[0];
