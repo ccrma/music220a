@@ -1,0 +1,320 @@
+<!-- 
+    based off of tutorials by Mike Mulshine et al
+    dependencies are in https://ccrma.stanford.edu/~cc/220a/webchuck220aFinal/
+-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!--- make responsive for mobile devices -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<!--- Include the ACE editor and webchuck stuff -->
+  <link rel="stylesheet" href="https://ccrma.stanford.edu/~cc/220a/webchuck220aFinal/css/editor.css">
+  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220aFinal/js/ace.js" charset="utf-8"></script>
+  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220aFinal/js/editor.js"></script>
+  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220aFinal/js/defer.js"></script>
+  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220aFinal/js/webchuck_host_recorder.js"></script>
+<!-- style the canvas using css format-->
+  <style>
+    #sig-canvas {
+      border: 2px dotted #CCCCCC;
+      border-radius: 5px;
+      cursor: crosshair;
+    }
+  </style>
+</head>
+
+<h2> Webchuck Demo</h2>
+<p>
+Thereminimum demonstrates use of mouse and trackpad to play a Theremin-like
+tone generator. The "theremin work space" is a canvas object. Hit the start button and
+point at the canvas. After entering it, trackpad scroll (aka, trackpad wheel) changes volume up and down and mouse pointer `Y' position is mapped to pitch (2 octave range). Mouse wheel affects timbre by changing the mix of a bank of oscillators with different waveforms. Panning and stereo reverb effects are also included.
+</p>
+<pre><div id="editor2" class="ace_editor ace_hidpi ace-chuck">
+</div></pre>
+live code
+<pre><div id="editor1" class="ace_editor ace_hidpi ace-chuck">  
+global float mouseW, trackW, mouseX, mouseY;
+global float red, green, blue;
+
+Pan2 pan; // stereo panner, set separate mono reverbs for each channel
+pan.chan(0) => NRev revLeft => dac.chan(0);
+pan.chan(1) => NRev revRight => dac.chan(1);
+
+// bank of oscillators
+SinOsc sin => pan;
+PulseOsc pul => pan;
+SqrOsc sqr => pan;
+TriOsc tri => pan;
+SawOsc saw => pan;
+
+// envelopes for ramping gestures between gesture updates
+50::ms => dur updateRate;
+Step unity => Envelope freqEnv => blackhole;
+unity => Envelope ampEnv => blackhole;
+unity => Envelope timbreEnv => blackhole;
+freqEnv.duration(updateRate);
+ampEnv.duration(updateRate);
+timbreEnv.duration(updateRate);
+  
+fun void updateFromGestures() {
+  while( true ) {
+// frequency from mouseY   
+    Std.mtof( mouseY*24 + 50 ) => float freq;
+    freqEnv.target(freq);
+// amplitude from trackpad wheel   
+    trackW  => float amp;
+    if ((amp >= 0.0) && (amp <= 1.0)) ampEnv.target(amp);
+// timbre from mouse wheel   
+    timbreEnv.target(mouseW);
+// display all three in rgb color space 
+    trackW*256 => red;
+    mouseY*256 => green;    
+    mouseW*256 => blue;    
+    updateRate => now;
+  }
+}
+spork ~ updateFromGestures();
+
+fun void updateOscillators() {
+  while( true ) {
+    sin.freq( freqEnv.last() );
+    pul.freq( freqEnv.last() );
+    sqr.freq( freqEnv.last() );
+    tri.freq( freqEnv.last() );
+    saw.freq( freqEnv.last() );
+    
+    timbreEnv.last() => float tmp;
+    
+    sin.gain( ampEnv.last() * panTimbre( tmp, 0.0) );
+    pul.gain( ampEnv.last() * panTimbre( tmp, 1.0) );
+    sqr.gain( ampEnv.last() * panTimbre( tmp, 2.0) );
+    tri.gain( ampEnv.last() * panTimbre( tmp, 3.0) );
+    saw.gain( ampEnv.last() * panTimbre( tmp, 4.0) );
+    1::samp => now;
+  }
+}
+spork ~ updateOscillators();
+
+// function used above to pan and voice the oscillator bank
+fun float panTimbre(float x, float y) {
+  Math.sin( x*5.0 + y*2.0 ) => float tmp;
+  pan.pan(tmp);
+  (1.0 + tmp) / 2.0 => tmp;
+  0.15 *=> tmp;
+  return tmp;
+}
+1::week => now;
+</div></pre>
+<canvas id="sig-canvas" width="620" height="160"></canvas>
+<p>
+<input id="startButton" type="button" value="Start" /> 
+<input id="startButtonWithInput" type="button" value="ADC & Start" /> 
+<input id="stopButton" type="button" value="Stop" /><br/><br/>
+<input id="recordButton" type="button" value="Start Recording" /><br/><br/>
+</p>
+<p id="outputText">output is a stereo .wav file</p>
+
+<script>
+var canvas = document.getElementById("sig-canvas");
+var ctx = canvas.getContext("2d");
+var width = canvas.width;
+var height = canvas.height;
+var mousePos = { x:0, y:0 };
+var lastPos = mousePos;
+var mw = 500;
+var tw = 500;
+
+function parseWheelEvent(event) { // disambiguate mouse and trackpad
+  event.preventDefault();
+  if (Math.abs(event.deltaY) > 100.0) { // likely from mouse
+    mw += -event.deltaY;
+    mw = Math.min(Math.max(0, mw), 1000);
+//    console.log("mouse wheel " + event.deltaY + " " + mw);
+    theChuck.setFloat( "mouseW", mw*0.001 );
+  } else { // this is from trackpad 
+    tw += event.deltaY;
+    tw = Math.min(Math.max(0, tw), 1000);
+//    console.log("track wheel " + event.deltaY + " " + tw);
+    theChuck.setFloat( "trackW", tw*0.001 );
+  }
+  event.stopImmediatePropagation();
+}
+
+canvas.addEventListener('wheel', parseWheelEvent, { passive: false } , true);
+
+// Get the position of the mouse relative to the canvas
+function getMousePos(canvasDom, mouseEvent) {
+  var rect = canvasDom.getBoundingClientRect();
+  return {
+    x: mouseEvent.clientX - rect.left,
+    y: mouseEvent.clientY - rect.top
+  };
+}
+
+canvas.addEventListener("mousemove", function (e) {
+  mousePos = getMousePos(canvas, e);
+  theChuck.setFloat( "mouseY", (height - mousePos.y) / height );
+  // unused, untested
+  theChuck.setInt( "mouseX", (width - mousePos.x) / width );
+  e.stopImmediatePropagation();
+}, true);
+
+// keyboard keydown event ///////////////////////////////////////////////
+// coarse timbre change depending on keyCode
+// like external mouse wheel but discrete events
+// first needs a click inside canvas to set focus on it
+let lastDownTarget;
+document.addEventListener("mousedown", function (e) {
+  lastDownTarget = event.target;
+}, false);
+// then use some funny numbers to effect a small timbre change -- could be vastly improved
+document.addEventListener("keydown", function (e) {
+  if (lastDownTarget == canvas) {
+    mw = (event.keyCode-80) * 80.0;
+    mw = Math.min(Math.max(0, mw), 1000);
+//    console.log("keydown " + event.keyCode + " " + mw);
+    theChuck.setFloat( "mouseW", mw*0.001 );
+  }
+}, false);
+
+// unused gestures ///////////////////////////////////////////////
+canvas.addEventListener("mousedown", function (e) {
+  lastPos = getMousePos(canvas, e);
+}, false);
+
+canvas.addEventListener("mouseup", function (e) {
+}, false);
+
+// end unused gestures ///////////////////////////////////////////////
+
+    var take = 1;
+    var preloaded = false;
+    var serverFilesToPreload = [
+//        {
+//            serverFilename: 'https://ccrma.stanford.edu/courses/220a/examples/webchuck/radio-play/wav/whale.wav',
+//            virtualFilename: 'whale.wav'
+//        }
+    ];
+    var adc = null;
+    const constraints = {'video': false, 'audio': {
+        'echoCancellation': false,
+        'autoGainControl': false,
+        'noiseSuppression': false,
+    }};
+    var connectAudioInput = function() {
+      navigator.mediaDevices.getUserMedia(constraints)
+        .then( function( stream ) {
+          adc = audioContext.createMediaStreamSource( stream );
+          adc.connect( theChuck );
+        });
+    }
+    var disconnectAudioInput = function() {
+      if (adc != null) adc.disconnect( theChuck );
+      adc = null;
+    }
+    async function prep(withInput) {
+        if (!preloaded) {
+          await preloadFilenames( serverFilesToPreload );
+        }
+        await startChuck();
+        await theChuckReady;
+        theChuck.removeLastCode();
+        setInterval(updateBackgroundColor, 100);
+        if (!preloaded) {
+//          await theChuck.runFile("isoRhythm.ck");
+          preloaded = true;
+        }
+        if ((withInput) && (adc === null))  connectAudioInput();
+    }
+
+var editor1 = newChuckEditor("editor1");
+var editor2 = newChuckEditor("editor2");
+editor2.setOptions({
+  showLineNumbers: false
+  , showGutter: false
+});
+
+var prependCode = `//  none needed
+`;
+
+var startButton = document.getElementById( "startButton" );
+var startButtonWithInput = document.getElementById( "startButtonWithInput" );
+var stopButton = document.getElementById( "stopButton" );
+var recordButton = document.getElementById( "recordButton" );
+stopButton.disabled = true;
+startButton.style.height = '60px';
+startButton.style.width= '120px';
+startButtonWithInput.style.height = '60px';
+startButtonWithInput.style.width= '120px';
+stopButton.style.height = '60px';
+stopButton.style.width= '120px';
+
+startButton.addEventListener( "click", async function() {
+  await prep(false);
+  await theChuck.runCode(prependCode+editor1.getValue());
+  stopButton.disabled = false;
+  startButton.value = "Replace";
+  startButtonWithInput.disabled = true;
+  startButton.style.background='White';  
+  recordButton.value = "Start Recording";
+  recordButton.style.background='#f0f0f0';  
+  await new Promise(r => setTimeout(r, 100));
+});
+
+startButtonWithInput.addEventListener( "click", async function() {
+  await prep(true);
+  await theChuck.runCode(prependCode+editor1.getValue());
+  stopButton.disabled = false;
+  startButtonWithInput.value = "Replace";
+  startButton.disabled = true;
+  startButtonWithInput.style.background='White';  
+  recordButton.value = "Start Recording";
+  recordButton.style.background='#f0f0f0';  
+  await new Promise(r => setTimeout(r, 100));
+});
+
+stopButton.addEventListener( "click", async function() {
+  await theChuck.removeLastCode();
+  disconnectAudioInput();
+  stereoRecorder.stop();
+  if (recordButton.value == "Recording") {
+    createDownloadLink(take);
+    take++;
+  }
+});
+
+recordButton.addEventListener( "click", async function() {
+  recordFromChuck();
+  stereoRecorder.start();
+  recordButton.style.background='Coral';  
+  recordButton.value = "Recording";
+});
+
+// display color field //////////////////////////////
+var red, grn, blu;
+function updateBackgroundColor() {
+  theChuck.getFloat("red").then( function(val) {
+    red = val;
+    theChuck.getFloat("green").then( function(val) {
+      grn = val;
+      theChuck.getFloat("blue").then( function(val) {
+        blu = val;
+        let color = "rgb(" + red.toString() + "," + grn.toString() + "," + blu.toString()+")";
+        canvas.style.backgroundColor  = color;
+      });
+    });
+  });
+}
+
+// draw with stylus in canvas, unused //////////////////////////////
+/*
+canvas.addEventListener("mousemove", function(e){
+        if (!e) e = window.event;
+        var x = e.offsetX==undefined?e.layerX:e.offsetX;
+        var y = e.offsetY==undefined?e.layerY:e.offsetY;
+        ctx.fillRect(x, y, 3, 3);
+        e.stopImmediatePropagation();
+    });
+*/
+
+</script>
