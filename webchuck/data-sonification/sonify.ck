@@ -3,10 +3,10 @@
 // desc: CO2 sonification
 //---------------------------------------------------------------------
 
-// data file, don't forget to upload it first
-"co2_mm_mlo_2024.csv" => string filename;
+// uploaded data file name
+"co2_mm_mlo.csv" => string filename;
 
-// file input output object
+// file input / output object
 FileIO fio;
 
 // open the data file
@@ -49,16 +49,27 @@ for (0 => int i; i < rows; i++) { // parse each row
   Std.atof( valString ) => val[i];
 }
 
+// get the extrema and print
+-99999.0 => float maxVal;
+-maxVal => float minVal;
+0.0 => float maxDate;
+0.0 => float minDate;
+for (0 => int i; i < rows; i++) {
+  if (val[i] > maxVal) {
+    val[i] => maxVal;
+    date[i] => maxDate;
+  }
+  if (val[i] < minVal) {
+    val[i] => minVal;
+    date[i] => minDate;
+  }
+  if (val[i] < minVal) val[i] => minVal;
+}
+<<< "max =", maxVal$int, "ppm CO2 in year", maxDate$int >>>;
+<<< "min =", minVal$int, "ppm CO2 in year", minDate$int >>>;
+
 SinOsc osc => dac; // play the data with a sine wave
 for (0 => int i; i < rows; i++) { // loop through the data
   osc.freq(val[i]); // assign co2 ppm to frequency
   10::ms => now; // wait 10 ms
 }
-
-// when done playing, get the max value and print it
--9999.0 => float maxVal;
-for (0 => int i; i < rows; i++) {
-  if (val[i] > maxVal) val[i] => maxVal;
-}
-<<< "maxVal", maxVal >>>;
-
