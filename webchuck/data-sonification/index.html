@@ -1,253 +1,178 @@
-<!-- the following is html code that defines the web page, and this is a comment in html-->
-<!-- in-browser sonification based off of tutorials by Mike Mulshine, Hongchan Choi, others -->
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<!--- make responsive for mobile devices -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-<!--- insert one line of JavaScript and use it to include d3 in the project -->
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-<!--- link in some css formatting for the ACE editor -->
-  <link rel="stylesheet" href="https://ccrma.stanford.edu/~cc/220a/webchuck220a/css/editor.css">
-<!--- include the ACE editor and our webchuck stuff -->
-  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/ace.js" charset="utf-8"></script>
-  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/editor.js"></script>
-  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/defer.js"></script>
-  <script type="text/javascript" src="https://ccrma.stanford.edu/~cc/220a/webchuck220a/js/webchuck_host.js"></script>
+<html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="https://chuck.stanford.edu/doc/images/chuck-logo2023w.png" type="image/png">
+    <!--- include the ACE editor and webchuck -->
+    <script src="https://cdn.jsdelivr.net/gh/ccrma/webchuck-ide@main/cdn/ace/ace.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/ccrma/webchuck-ide@main/cdn/ace/editor.js"></script>
+    <script type="module">
+      let l, e, t = 'script', p = /(from\s+|import\s+)['"](#[\w\-]+)['"]/g, x = 'textContent', d = document, o;
+      for (o of d.querySelectorAll(t + '[type=chuck]')) o[x] = 'export default `' + o[x] + '`', o.setAttribute('type', 'inline-module');
+      for (o of d.querySelectorAll(t + '[type=inline-module]')) l = d.createElement(t), o.id ? l.id = o.id : 0, l.type = 'module', l[x] = o[x].replace(p, (u, a, z) => (e = d.querySelector(t + z + '[type=module][src]')) ? a + `/* ${ z } */'${ e.src }'` : u), l.src = URL.createObjectURL(new Blob([l[x]], { type: 'application/java' + t })), o.replaceWith(l);//inline
+    </script>
+    <script id="chuck" type="chuck">//---------------------------------------------------------------------
+// name: sonify.ck
+// desc: CO2 sonification
+//---------------------------------------------------------------------
 
-<!--- JavaScript to specify the dataset (time series) file to sonify, typically in .csv format 
-  and a label name for the Y-axis -->
-  <script>
-    const dataURL = 'https://ccrma.stanford.edu/courses/220a/examples/webchuck/data-sonification/CO2-MLOfullRecord.csv';
-    const dataName = 'CO2 (ppm)';
-  </script>
-</head>
+// uploaded data file name
+"CO2-MLOfullRecord.csv" => string filename;
 
-<!--- title the project, place the graph and add project description -->
-<h2> HW1 </h2>
-<div id="my_dataviz"></div>
-<p>Here is a simple ChucK program that performs the above dataset with a sine wave. Click <strong>"Start"</strong> to run the ChucK code. Try out some live coding by editing something and then clicking <strong>"Replace"</strong> to hear your changes. Suggestions include, for example, lowering the 100::ms interval to speed up the tempo.</p>
+// file input / output object
+FileIO fio;
 
-<!--- Chuck editor blocks with Chuck code (suggestions, live code) -->
-//////////////////////////////////////////////////// <br>
-suggestions (copy and replace any of these items in live code) <br>   
-<pre><div id="suggestionsEditor" class="ace_editor ace_hidpi ace-chuck">
-  // change timbre
-  SawOsc osc => dac; 
-  // change pitch range
-  osc.freq(vals[i]*1000+500); 
-  // change tempo
-  10::ms => now; 
-</div></pre>
-//////////////////////////////////////////////////// <br>
-live code
-<pre><div id="liveCodeEditor" class="ace_editor ace_hidpi ace-chuck">  50::ms => now; // start after 50ms
-  SinOsc osc => dac; // play the data with a sine wave
-  for (0 => int i; i < nVals; i++) {
-    osc.freq(vals[i]*1000+200); // data values in range 0 - 1
-    100::ms => now;
-  }</div></pre>
-    
-<!--- button elements -->
-<p>
-<input id="startButton" type="button" value="Start" /> 
-<input id="stopButton" type="button" value="Stop" /> <br/><br/>
-</p>
+// open the data file
+fio.open( filename, FileIO.READ );
 
-<!--- all the rest is JavaScript code -->
-<script>
+// ensure it's ok
+if( !fio.good() )  {
+  <<< "couldn't open file", filename >>>;
+  me.exit();
+} else <<< filename, "opened ok" >>>;
 
-// this is a one line comment in JavaScript
+// read 1st line
+fio.readLine() => string header;
 
-// get the button display elements from the page, set options
-var startButton = document.getElementById( "startButton" );
-var stopButton = document.getElementById( "stopButton" );
-stopButton.disabled = true;
-startButton.style.height = '60px';
-startButton.style.width= '120px';
-stopButton.style.height = '60px';
-stopButton.style.width= '120px';
+// count how many rows of data remain
+0 => int rows;
+while (!fio.eof()) {
+  fio.readLine();
+  rows++;
+}
+<<< filename, "has", rows, "rows with columns of", header >>>;
 
-// get the editor elements from the page, set options
-var liveCodeEditor = newChuckEditor("liveCodeEditor");
-var suggestionsEditor = newChuckEditor("suggestionsEditor");
-suggestionsEditor.setOptions({
-  showLineNumbers: false
-  , showGutter: false
-});
+// declare arrays to hold the data points
+float date[rows];
+float val[rows];
 
-// hidden Chuck code to be prepended to the Chuck code above
-// it's one long string delimited by ` `
-var prependCode = `
-  // initial data preparation
-  global int nVals;
-  global Event waitForData;
-  waitForData => now;
-  global float years[nVals];
-  global float vals[nVals];
-`;
-
-// this function starts the Chuck virtual machine
-async function prep() {
-  await startChuck();
-  await theChuckReady;
-  theChuck.removeLastCode();
+// re-open the data file now that we've counted the rows
+fio.open( filename, FileIO.READ );
+fio.readLine() => header; // skip over the header
+for (0 => int i; i < rows; i++) { // parse each row
+  fio.readLine() => string csvLine;
+  StringTokenizer strtok; // tokenizer uses space separated values
+  csvLine.replace( ",", " " ); // so replace commas
+  strtok.set(csvLine); // hand the line to tokenizer
+  string dateString, valString; // temporary storage
+  strtok.next( dateString ); // next token is date
+  strtok.next( valString ); // next is value
+  // convert strings to float numbers and store in arrays
+  Std.atof( dateString ) => date[i];
+  Std.atof( valString ) => val[i];
 }
 
-// when startButton is clicked, start the Chuck vm and have it run the prependCode and code in liveCodeEditor
-startButton.addEventListener( "click", async function() {
-  await prep();
-  await theChuck.runCode(prependCode+liveCodeEditor.getValue());
-  stopButton.disabled = false;
-  startButton.value = "Replace";
-  await new Promise(r => setTimeout(r, 100)); // wait 100msec for vm to catch up
-  getCsvDataLengthThenData(dataURL, dataFilter); // read in time series data from the file on the server
-});
-
-// when stopButton is clicked, remove the last Chuck shred
-stopButton.addEventListener( "click", async function() {
-  await theChuck.removeLastCode();
-});
-
-// define dataFilter
-const dataFilter = (row) => {
-  // The target data set has 2 columns. Skip the row otherwise.
-  if (row.length !== 2) return null;
-
-  // Arranges the given row into a preferred form.
-  // The incoming source data could be in different formats depending on the project.
-  const filteredRow = {
-    // The first column (row[0]) produces a decimal year in the example.
-    // -- otherwise, if date is in strings, like "2021-09-26", 
-    // swap in this next form to convert the string to decimal year
-    // year: (1969.5 + (Date.parse(row[0])) / (31556925993.6) ),
-    year: parseFloat(row[0]),
-    // The second column (row[1]) produces the actual value.
-    value: parseFloat(row[1])
-  };
-
-  // Sanitizing; if the row contains a value that is negative or not a number, remove it
-  // from the dataset.
-  for (const column in filteredRow) {
-    const value = filteredRow[column];
-    if (value < 0 || isNaN(value)) return null;
+// get the extrema and print
+-99999.0 => float maxVal;
+-maxVal => float minVal;
+0.0 => float maxDate;
+0.0 => float minDate;
+for (0 => int i; i < rows; i++) {
+  if (val[i] > maxVal) {
+    val[i] => maxVal;
+    date[i] => maxDate;
   }
-
-  return filteredRow;
-};
-
-// read the data file with d3, filter the data and send to Chuck
-const getCsvDataLengthThenData = async (url, dataFilter) => {
-  try {
-// first, get the number of data points  
-    let response = await fetch(url);
-    let csvData = await response.text();
-    let parsedArray = d3.csvParseRows(csvData, dataFilter); // read once to get number of rows
-    theChuck.setInt("nVals", parsedArray.length); // set nVals in our Chuck code to be the number of rows
-    theChuck.broadcastEvent("waitForData"); // ok we've seen the data
-// now, read it again to get the data itself
-    response = await fetch(url);
-    csvData = await response.text();
-    parsedArray = d3.csvParseRows(csvData, dataFilter);
-  let normalize = d3  // set up a d3 "normalizer" that will transform the data values to be in 0 - 1 range
-    .scaleLinear()
-    .domain(d3.extent(parsedArray, (datum) => datum.value))
-    .range([0.0, 1.0]);
-    for (let ind = 0; ind < parsedArray.length; ind++) {
-      theChuck.setFloatArrayValue("years", ind, parsedArray[ind].year); // send years to our Chuck code
-      theChuck.setFloatArrayValue("vals", ind, normalize(parsedArray[ind].value)); // normalized values to our Chuck code
-    }
-    return null;
-  } catch (error) { // print a message if something goes wrong
-    throw Error(ErrorMessages.CSV_FETCH_PARSE_FAILURE + ` (${url})`);
+  if (val[i] < minVal) {
+    val[i] => minVal;
+    date[i] => minDate;
   }
-};
-
-// define a draw function to read the data file and graph it directly
-async function draw() {
-  let response = await fetch(dataURL);
-  let csvData = await response.text();
-  let parsedArray = d3.csvParseRows(csvData, dataFilter);
-  drawLineGraph(parsedArray); // defined below
+  if (val[i] < minVal) val[i] => minVal;
 }
-draw(); // call our draw function
+<<< "max =", maxVal$int, "ppm CO2 in year", maxDate$int >>>;
+<<< "min =", minVal$int, "ppm CO2 in year", minDate$int >>>;
 
-// set a bunch of options for our drawLineGraph function
-// this code assumes the global instance of d3 
-const [
-  area,
-  line,
-  axisBottom,
-  axisLeft,
-  csvParseRows,
-  extent,
-  scaleLinear,
-  scalePow,
-  scaleTime,
-  select,
-  time,
-] = [
-  d3.area,
-  d3.line,
-  d3.axisBottom,
-  d3.axisLeft,
-  d3.csvParseRows,
-  d3.extent,
-  d3.scaleLinear,
-  d3.scalePow,
-  d3.scaleTime,
-  d3.select,
-  d3.time,
-];
-
-const drawLineGraph = (data) => {
-  let margin = { top: 50, right: 50, bottom: 50, left: 50 };
-  let width = 200;
-  let height = 100;
-  let x = scaleLinear()
-    .domain(extent(data, (datum) => datum.year))
-    .range([0, width]);
-  let x_axis = axisBottom(x)
-     .ticks(5)
-     .tickFormat(d3.format("d"));
-  let y = scaleLinear()
-    .domain(extent(data, (datum) => datum.value))
-    .range([height, 0]);
-  let lineGraph = line()
-    .x((data) => x(data.year))
-    .y((data) => y(data.value));
-  let svg = select("#my_dataviz")
-    .append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-    .append("g")
-    .attr("transform", `translate(${margin.left},${margin.top})`);
-  svg
-    .append("path")
-    .datum(data)
-    .attr("fill", "none")
-    .attr("stroke", "#69b3a2")
-    .attr("stroke-width", 1.5)
-    .attr("d", lineGraph);
-  svg
-    .append("g")
-    .attr("transform", `translate(0,${height})`)
-    .call(x_axis);
-  svg.append("g").call(axisLeft(y));
-  svg.append("text")
-   .attr("x", width/2)
-   .attr("y", height+30)
-   .attr("text-anchor", "middle")
-   .style("font-size", "8px")
-   .text(dataURL);
-  svg.append("text")
-   .attr("transform", "rotate(-90)")
-   .attr("x", -(height/2))
-   .attr("y", -40)
-   .style("text-anchor", "middle")
-   .style("font-size", "8px")
-   .text(dataName);
-};
-
+SinOsc osc => dac; // play the data with a sine wave
+for (0 => int i; i < rows; i++) { // loop through the data
+  osc.freq(val[i]); // assign co2 ppm to frequency
+  10::ms => now; // wait 10 ms
+}
 </script>
+    <script type="inline-module">
+      import { Chuck } from 'https://cdn.jsdelivr.net/npm/webchuck/+esm';
+      import chuck from '#chuck';
 
+      const editor = newChuckEditor(document.getElementById("editor"), chuck);
+
+      const states = Object.freeze({
+        playing: 0,
+        stopped: 1
+      });
+      let status = states.stopped;
+
+      const action = document.querySelector('#action');
+      const mixer = document.querySelector('#webchuck-gui');
+      const openInIDE = document.querySelector('#openInIDE');
+
+      // Play button
+      action.addEventListener('click', async () => {
+        // Initial load
+        if (!window.theChuck) {
+          action.disabled = true;
+          window.theChuck = await Chuck.init( [{"serverFilename":"./CO2-MLOfullRecord.csv","virtualFilename":"CO2-MLOfullRecord.csv"}] );
+          action.disabled = false;
+        }
+
+        switch (status) {
+          case states.playing:
+            status = states.stopped;
+            theChuck.removeLastCode();
+            // Stop button
+            action.innerHTML = `
+              Play
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-play" viewBox="0 0 16 16">
+                <path d="M10.804 8 5 4.633v6.734L10.804 8zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696l6.363 3.692z"/>
+              </svg>
+            `;
+            break;
+          case states.stopped:
+            status = states.playing;
+            theChuck.runCode(editor.getValue());
+            // Play button
+            action.innerHTML = `
+              Stop
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-stop" viewBox="0 0 16 16">
+                <path d="M3.5 5A1.5 1.5 0 0 1 5 3.5h6A1.5 1.5 0 0 1 12.5 5v6a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 11V5zM5 4.5a.5.5 0 0 0-.5.5v6a.5.5 0 0 0 .5.5h6a.5.5 0 0 0 .5-.5V5a.5.5 0 0 0-.5-.5H5z"/>
+              </svg>
+            `;
+            break;
+        }
+      });
+
+      openInIDE.addEventListener('click', () => {
+        const currURL = window.location.href; // TODO: append the code to the URL
+        window.open("https://chuck.stanford.edu/ide", '_blank');
+      });
+
+      
+    </script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/ccrma/webchuck-ide@main/cdn/webchuck.css">
+    <title>chartAndSoundDemo</title>
+  </head>
+
+  <body>
+    <header>
+      <h1><span id="title" style="font-weight: bold">chartAndSoundDemo</span></h1>
+      <div id="author" style="font-style: italic;">Chris Chafe</div>
+      <p id="description" style="padding-bottom: 0.5rem;">CO2 data in PPM to 2023, sonification including a chart of the data.</p>
+      
+      <img src="CO2-MLOfullRecord.png">
+      
+      <button id="action">
+        Play
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-play" viewBox="0 0 16 16">
+          <path d="M10.804 8 5 4.633v6.734L10.804 8zm.792-.696a.802.802 0 0 1 0 1.392l-6.363 3.692C4.713 12.69 4 12.345 4 11.692V4.308c0-.653.713-.998 1.233-.696l6.363 3.692z"></path>
+        </svg>
+      </button>
+      <button id="openInIDE">=&gt; <em>to WebChucK IDE</em></button>
+    </header>
+
+
+    <main>
+      <div class="editor-container">
+        <div id="editor" class="ace_editor ace-chuck" style="width: 100%; height: 100%;"></div>
+      </div>
+    </main>
+
+  
+
+
+</body></html>

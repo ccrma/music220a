@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>ChucK + JS => ChucKScript</title>
+    <link rel="stylesheet" href="./css/editor.css">
+  </head>
+  <body onresize="chuckEditor.resize();">
+<div>
+    <div id="program">// 220a hw3 starter code in webchuck!
+// @title hw3-starter.ck
+// @author Chris Chafe (cc@ccrma), Hongchan Choi (hongchan@ccrma), Madeline Huberth (mhuberth@ccrma)
+// @desc A starter code for homework 3, Music220a-2021
+// @note a demonstration/template for auditory streaming
+
+// -------------------------------------------------------------
+// This code creates three FM instruments that, when played
+// at a slow rate, create one auditory stream. When the tempo is sped up, however,
+// different rhythms and melodic groupings pop out of the texture, due to your mind's 
+// grouping of the sounds. Outputs to dac and .wav file.
+
+// -------------------------------------------------------------
+// array to hold midi pitches (key numbers) 
+// these will be converted into the carrier frequencies
+[60, 62, 64, 65] @=> int keyn[];
+
+// how many pitches are in the array
+keyn.cap() => int nP;
+
+// -------------------------------------------------------------
+// against a cycle of a different length which we'll use to vary 
+// instrument parameters
+nP - 1 => int nI;
+
+// arrays to hold modulation frequency, timing of modulation envelope, 
+// and timing/gain of carrier ADSRs
+// really, anything that we want to use to break the repeating pitches
+// into multiple streams
+
+// FMFS is a custom class, "FM From Scratch"
+// instantiate nI instances of the class
+// make arrays for carrier amplitude & carrier amplitude envelope breakpoints, 
+// and modulation frequency ratio & index & modulation envelope breakpoints
+// ADSR stands for "Attack-Decay-Sustain-Release"
+FMFS fm[nI];
+float cAmp[nI];
+float cADSR[nI][0]; // 2d array, second dimension will hold an array of float values for ADSR
+float pRatio[nI];
+float mRatio[nI];
+float mIndex[nI];
+float mADSR[nI][0];
+for (0 => int i; i < nI; i++) 
+{
+    [.01,.4,.5,.1] @=> cADSR[i];
+    [1.0,1.0,9.0] @=> pRatio;
+    0.5 + Math.pow(i,3.1) => mRatio[i];
+    Math.pow(i,3) => mIndex[i];
+    <<<"instrument",i,"has modulation frequency ratio of", mRatio[i]>>>;
+    [.01,.4,1.0,.1] @=> mADSR[i];
+    fm[i].out => dac.chan(i%2); 
+}
+
+// -------------------------------------------------------------
+// global parameters
+
+// set a common note duration
+100::ms => dur duration;
+// starting inter-onset interval (inverse of tempo)
+800::ms => dur ioi;
+// accelerate to this smallest IOI (inter-onset-interval - the length of silence between notes!)                
+160::ms => dur minIoi;
+// variable for which pitch is next
+0 => int p;
+// variable for which instrument is next                         
+0 => int i;
+
+
+// loop for 20 seconds
+now => time beg;
+beg + 20::second => time end;
+dac => WvOut2 w => blackhole;
+//dac.chan(0) => w.chan(1);
+w.wavFilename("media/test.wav");
+while (now < end) {
+    // print pitch index, instrument index
+    <<< "P =", p, "\tI =", i >>>;
+    Std.mtof(keyn[p]) => float cFreq;
+    // assign pitch
+    spork ~fm[i].playFM(duration, cFreq, pRatio[i], cADSR[i], mRatio[i], mIndex[i], mADSR[i]);
+    // increment note and instrument
+    p++;
+    i++;
+    // cycle pitch through full array
+    nP %=> p;
+    // cycle instrument through full array
+    nI %=> i;
+    
+    // advance time by interval and calculate the next time interval
+    ioi => now;
+    // accelerate
+    if (ioi > minIoi) 
+      ioi * 0.96 => ioi;
+      else
+    // can't go faster than minIoi 
+        minIoi => ioi;
+    
+}
+
+// -------------------------------------------------------------
+// @class FMFS
+// fm implementation from scratch with envelopes
+// @author 2015 Madeline Huberth, 2021 version by CC
+class FMFS
+{ // two typical uses of the ADSR envelope unit generator...
+    Step unity => ADSR envM => blackhole; //...as a separate signal
+    SinOsc mod => blackhole;
+    SinOsc car => ADSR envC => Gain out;  //...as an inline modifier of a signal
+    car.gain(0.2);
+    float freq, index, ratio; // the parameters for our FM patch
+
+    fun void fm() // this patch is where the work is
+    {
+      while (true)
+      {
+        envM.last() * index => float currentIndex; // time-varying index
+        mod.gain( freq * currentIndex );    // modulator gain (index depends on frequency)
+        mod.freq( freq * ratio );           // modulator frequency (a ratio of frequency) 
+        car.freq( freq + mod.last() );      // frequency + modulator signal = FM 
+        1::samp => now;
+      }
+    }
+    spork ~fm(); // run the FM patch
+
+    // function to play a note on our FM patch
+    fun void playFM( dur length, float pitch, float pRatio, float cADSR[], float mRatio, float mGain, float mADSR[] ) 
+    {
+        // set patch values
+        pRatio * pitch => freq;
+        mRatio => ratio;
+        mGain => index;
+       // run the envelopes
+        spork ~ playEnv( envC, length, cADSR );
+        spork ~ playEnv( envM, length, mADSR );
+        length => now; // wait until the note is done
+    }
+
+    fun void playEnv( ADSR env, dur length, float adsrValues[] )
+    {
+        // set values for ADSR envelope depending on length
+        length * adsrValues[0] => dur A;
+        length * adsrValues[1] => dur D;
+        adsrValues[2] => float S;
+        length * adsrValues[3] => dur R;
+        
+        // set up ADSR envelope for this note
+        env.set( A, D, S, R );
+        // start envelope (attack is first segment)
+        env.keyOn();
+        // wait through A+D+S, before R
+        length-env.releaseTime() => now;
+        // trigger release segment
+        env.keyOff();
+        // wait for release to finish
+        env.releaseTime() => now;
+    }
+    
+} 
+// END OF CLASS: FM
+</div>
+</div>
+<div class="buttons">
+    <button class="chuckButton" id="startChuck" disabled="disabled">Start ChucK</button>
+    <button class="chuckButton" id="compileButton" disabled="disabled">Compile and Run</button>
+    <button class="chuckButton" id="replaceButton" disabled="disabled">Replace</button>
+    <button class="chuckButton" id="removeButton" disabled="disabled">Remove</button>
+    <button class="chuckButton" id="clearButton" disabled="disabled">Clear VM and Globals</button>
+    <button class="chuckButton" id="micButton" disabled="disabled">Enable Microphone</button>
+    <button class="chuckButton" id="fileFormButton">Show File Uploader</button>
+</div>
+<div id="fileForm" class="hidden">
+    <p>File name to use in ChucK: <input type="text" id="uploadFilename"></p>
+    <p>Local file to upload: <input type="file" id="uploadFile" name="uploadFile"></p>
+    <p><button class="chuckButton" id="fileButton" disabled="disabled">Upload File to Virtual File System</button></p>
+</div>
+<div>
+    <textarea id="output"></textarea>
+    <div id="shreds">
+        <table id="shredstable">
+            <col width="60px">
+            <col width="1*">
+            <col width="50px">
+            <col width="60px">
+            <tr><th>shred</th><th>code</th><th>time</th><th>remove</th>
+        </table>
+    </div>
+    <div class="clearfix"></div>
+</div>
+    <script src="./js/ace-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript" src="./js/editor.js"></script>
+    <script type="text/javascript" src="./js/defer.js"></script>
+    <script>
+        // no need to override this, but this is how you would do it:
+        // the path from the HTML file to chuckscript.[js,wasm]
+        var whereIsChuck = "./js";
+        
+        // files we want to load into our virtual filesystem
+        var serverFilesToPreload = [
+            {
+                serverFilename: './wav/aah.wav',
+                virtualFilename: 'aah5.wav'
+            }
+        ];
+    </script>
+    <script type="text/javascript" src="./js/webchuck_host.js"></script>
+    <script type="text/javascript" src="./js/host.js"></script>
+    <script>
+        theChuckReady.then( function() {
+            if( window.Event ) { 
+                document.captureEvents( Event.MOUSEMOVE );
+            }
+            document.onmousemove = function( e )
+            {
+                var x = (window.Event) ? e.pageX : event.clientX + (document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft);
+                var y = (window.Event) ? e.pageY : event.clientY + (document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop);
+                theChuck.setInt( "mouseX", x );
+            }
+            document.onclick = function( e )
+            {
+                theChuck.broadcastEvent( "mouseClicked" );
+            }
+        });
+    </script>
+  </body>
+</html>
+
+

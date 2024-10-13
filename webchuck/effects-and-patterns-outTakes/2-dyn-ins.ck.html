@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>ChucK + JS => ChucKScript</title>
+    <link rel="stylesheet" href="./css/editor.css">
+  </head>
+  <body onresize="chuckEditor.resize();">
+<div>
+    <div id="program">
+// dyn-ins.ck
+// demo of dynamical system tones
+
+// uses the same iterated map on a second-order
+// polynomial function as in dyn-notes.ck
+
+class MapTick
+{
+// implement the map in unit generators
+// a0 + (a1 * x) + (a2 * x * x);
+// chuck-1.2.0.8 disallows duplicate input connections
+// but ok with 1.3.5.0
+
+	Gain x => Gain x1;
+	x => Gain x2;
+	x => Gain x2b => x2;
+
+// multiply inputs
+	3 => x1.op; 
+	3 => x2.op;
+
+	Step c; // provide a constant signal of 1.0
+	c => Gain a0 => Gain out;
+	c => Gain a1 => x1 => out;
+	c => Gain a2 => x2 => out;
+		
+	out => Envelope e => dac => x;
+
+	fun void startNote( float c)
+	// modify a0 coefficient
+	{
+		c => a0.gain;
+		-0.7 => a1.gain;
+		2.0 => a2.gain;
+		e.keyOn();
+		50::ms => dur t => e.duration;
+	}
+	fun void stopNote()
+	{
+		e.keyOff();
+	}
+}
+
+// to write soundfile specify file name
+string writeName;
+"/tmp/dyn.wav" => writeName;
+if (writeName!="")
+{
+	dac => WvOut o => blackhole;
+	writeName => o.wavFilename;
+}
+
+
+// how many tones to play in the demo
+15 => int numTones;
+// instantiate one MapTick object, call it "ins"
+MapTick ins;
+
+// loop by one tone at a time
+for( int ctr; ctr < numTones; ctr++ )
+{
+// calculate a ramp that increases over the demo
+	(((ctr)$float)/(numTones-1$float)) => float ramp;
+// ramp the a0 coefficient and print
+	-0.3 + (ramp * (-0.7 - -0.3)) => float a0;
+    	<<< "a0:", a0 >>>;
+	ins.startNote(a0);
+	400::ms => now;
+	ins.stopNote();
+	100::ms => now;
+}// end of chuck
+</div>
+</div>
+<div class="buttons">
+    <button class="chuckButton" id="startChuck" disabled="disabled">Start ChucK</button>
+    <button class="chuckButton" id="compileButton" disabled="disabled">Compile and Run</button>
+    <button class="chuckButton" id="replaceButton" disabled="disabled">Replace</button>
+    <button class="chuckButton" id="removeButton" disabled="disabled">Remove</button>
+    <button class="chuckButton" id="clearButton" disabled="disabled">Clear VM and Globals</button>
+    <button class="chuckButton" id="micButton" disabled="disabled">Enable Microphone</button>
+    <button class="chuckButton" id="fileFormButton">Show File Uploader</button>
+</div>
+<div id="fileForm" class="hidden">
+    <p>File name to use in ChucK: <input type="text" id="uploadFilename"></p>
+    <p>Local file to upload: <input type="file" id="uploadFile" name="uploadFile"></p>
+    <p><button class="chuckButton" id="fileButton" disabled="disabled">Upload File to Virtual File System</button></p>
+</div>
+<div>
+    <textarea id="output"></textarea>
+    <div id="shreds">
+        <table id="shredstable">
+            <col width="60px">
+            <col width="1*">
+            <col width="50px">
+            <col width="60px">
+            <tr><th>shred</th><th>code</th><th>time</th><th>remove</th>
+        </table>
+    </div>
+    <div class="clearfix"></div>
+</div>
+    <script src="./js/ace-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript" src="./js/editor.js"></script>
+    <script type="text/javascript" src="./js/defer.js"></script>
+    <script>
+        // no need to override this, but this is how you would do it:
+        // the path from the HTML file to chuckscript.[js,wasm]
+        var whereIsChuck = "./js";
+        
+        // files we want to load into our virtual filesystem
+        var serverFilesToPreload = [
+            {
+                serverFilename: './wav/aah.wav',
+                virtualFilename: 'aah5.wav'
+            }
+        ];
+    </script>
+    <script type="text/javascript" src="./js/webchuck_host.js"></script>
+    <script type="text/javascript" src="./js/host.js"></script>
+    <script>
+        theChuckReady.then( function() {
+            if( window.Event ) { 
+                document.captureEvents( Event.MOUSEMOVE );
+            }
+            document.onmousemove = function( e )
+            {
+                var x = (window.Event) ? e.pageX : event.clientX + (document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft);
+                var y = (window.Event) ? e.pageY : event.clientY + (document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop);
+                theChuck.setInt( "mouseX", x );
+            }
+            document.onclick = function( e )
+            {
+                theChuck.broadcastEvent( "mouseClicked" );
+            }
+        });
+    </script>
+  </body>
+</html>
+
+

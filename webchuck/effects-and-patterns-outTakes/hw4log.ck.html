@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>ChucK + JS => ChucKScript</title>
+    <link rel="stylesheet" href="./css/editor.css">
+  </head>
+  <body onresize="chuckEditor.resize();">
+<div>
+    <div id="program">
+// dyn-notes.ck
+// demo of dynamical system melodies
+// writes a sound file /zap/dyn.wav
+// from miniAudicle, stop the vm to complete file output after playing the shred
+
+Clarinet c => dac;
+
+// how many phrases to play in the demo
+5 => int numRiffs;
+
+// use this polynomial function, with a0 term as the "heat" variable 
+// y = a0 + a1x + a2x^2
+fun float poly( float x, float r)
+{
+// set the other terms to constants
+	return r * x * (1.0 - x);
+}
+
+// to write soundfile
+dac => WvOut o => blackhole;
+"/tmp/dyn.wav" => o.wavFilename;
+
+// return a linear interpolation proportional to x, between lo and hi
+fun float interp( float lo, float hi, float x)
+{
+	return lo + (x * (hi - lo));
+}
+
+// return x, bounded by lo and hi
+fun float clip( float lo, float hi, float x)
+{
+	return Math.min (Math.max (x , lo), hi);
+}
+
+// loop over the phrases
+for( int ctr; ctr < numRiffs; ctr++ )
+{
+// calculate a ramp that increases from 0 to 1 at end of the phrases
+	(((ctr)$float)/(numRiffs-1$float)) => float rampUp;
+// use the ramp to increase the value of a0 in the polynomial above
+	interp(3.4, 4.0, rampUp) => float heat;
+    <<< "r `heat':", heat >>>;
+// x is the iterated map state variable, use the same initial condition each new phrase
+	0.1 => float v;
+// play one phrase with melody based on iterated map
+	for( int i; i < 40; i++ )               // loop for 40 notes
+	{
+		poly(v, heat) => v;                 // feedback x to iterate the map
+        440.0 + (v * 220.0)  => float f;    // use the new value as a frequency
+		clip (50.0, 4000.0, f) => f;        // bounded
+	    f => c.freq;                        // to clarinet
+		0.80 => c.startBlowing;             // note on
+	    100::ms => now;                     // for 100ms
+		1.0 => c.stopBlowing;               // then, note off
+	}
+	500::ms => now;                         // wait 500ms before beginning next phrase
+}
+
+// close soundfile
+o.closeFile;
+// in miniAudicle, you need to manually stop "virtual machine" to complete file output// end of chuck
+</div>
+</div>
+<div class="buttons">
+    <button class="chuckButton" id="startChuck" disabled="disabled">Start ChucK</button>
+    <button class="chuckButton" id="compileButton" disabled="disabled">Compile and Run</button>
+    <button class="chuckButton" id="replaceButton" disabled="disabled">Replace</button>
+    <button class="chuckButton" id="removeButton" disabled="disabled">Remove</button>
+    <button class="chuckButton" id="clearButton" disabled="disabled">Clear VM and Globals</button>
+    <button class="chuckButton" id="micButton" disabled="disabled">Enable Microphone</button>
+    <button class="chuckButton" id="fileFormButton">Show File Uploader</button>
+</div>
+<div id="fileForm" class="hidden">
+    <p>File name to use in ChucK: <input type="text" id="uploadFilename"></p>
+    <p>Local file to upload: <input type="file" id="uploadFile" name="uploadFile"></p>
+    <p><button class="chuckButton" id="fileButton" disabled="disabled">Upload File to Virtual File System</button></p>
+</div>
+<div>
+    <textarea id="output"></textarea>
+    <div id="shreds">
+        <table id="shredstable">
+            <col width="60px">
+            <col width="1*">
+            <col width="50px">
+            <col width="60px">
+            <tr><th>shred</th><th>code</th><th>time</th><th>remove</th>
+        </table>
+    </div>
+    <div class="clearfix"></div>
+</div>
+    <script src="./js/ace-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript" src="./js/editor.js"></script>
+    <script type="text/javascript" src="./js/defer.js"></script>
+    <script>
+        // no need to override this, but this is how you would do it:
+        // the path from the HTML file to chuckscript.[js,wasm]
+        var whereIsChuck = "./js";
+        
+        // files we want to load into our virtual filesystem
+        var serverFilesToPreload = [
+            {
+                serverFilename: './wav/aah.wav',
+                virtualFilename: 'aah5.wav'
+            }
+        ];
+    </script>
+    <script type="text/javascript" src="./js/webchuck_host.js"></script>
+    <script type="text/javascript" src="./js/host.js"></script>
+    <script>
+        theChuckReady.then( function() {
+            if( window.Event ) { 
+                document.captureEvents( Event.MOUSEMOVE );
+            }
+            document.onmousemove = function( e )
+            {
+                var x = (window.Event) ? e.pageX : event.clientX + (document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft);
+                var y = (window.Event) ? e.pageY : event.clientY + (document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop);
+                theChuck.setInt( "mouseX", x );
+            }
+            document.onclick = function( e )
+            {
+                theChuck.broadcastEvent( "mouseClicked" );
+            }
+        });
+    </script>
+  </body>
+</html>
+
+
